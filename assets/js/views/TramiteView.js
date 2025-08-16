@@ -312,21 +312,13 @@ class TramiteView {
   }
 
   /**
-   * Muestra un mensaje de alerta
+   * Muestra un mensaje de alerta usando Bootstrap alerts con close button
    * @param {string} message - Mensaje a mostrar
    * @param {string} type - Tipo de alerta (success, danger, warning, info)
-   * @param {number} duration - Duración en milisegundos
+   * @param {number} duration - Duración en milisegundos (0 para no auto-cerrar)
    */
   showAlert(message, type = 'info', duration = 5000) {
-    const alertHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                <i class="fas fa-${this.getAlertIcon(type)} me-2"></i>
-                ${this.escapeHtml(message)}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-
-    // Crear contenedor de alertas si no existe
+    // Obtener o crear el contenedor de alertas fijo en la esquina superior derecha
     let alertContainer = document.getElementById('alertContainer');
     if (!alertContainer) {
       alertContainer = document.createElement('div');
@@ -336,21 +328,41 @@ class TramiteView {
       document.body.appendChild(alertContainer);
     }
 
-    // Agregar la alerta
-    const alertElement = document.createElement('div');
-    alertElement.innerHTML = alertHTML;
-    alertContainer.appendChild(alertElement.firstElementChild);
+    // Crear el HTML de la alerta con Bootstrap classes
+    const alertId =
+      'alert_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const alertHTML = `
+      <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-${this.getAlertIcon(type)} me-2"></i>
+          <span>${this.escapeHtml(message)}</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
 
-    // Auto-remover después del tiempo especificado
+    // Agregar la alerta al contenedor
+    alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+
+    // Obtener la alerta recién creada
+    const alertElement = document.getElementById(alertId);
+
+    // Configurar auto-cierre si se especifica duración
     if (duration > 0) {
       setTimeout(() => {
-        const alert = alertContainer.querySelector('.alert');
-        if (alert) {
-          const bsAlert = new bootstrap.Alert(alert);
+        if (alertElement && alertElement.parentNode) {
+          const bsAlert = new bootstrap.Alert(alertElement);
           bsAlert.close();
         }
       }, duration);
     }
+
+    // Configurar evento para remover el elemento del DOM después de cerrar
+    alertElement.addEventListener('closed.bs.alert', () => {
+      if (alertElement.parentNode) {
+        alertElement.parentNode.removeChild(alertElement);
+      }
+    });
   }
 
   /**

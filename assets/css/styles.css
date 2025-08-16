@@ -222,38 +222,125 @@ header {
   .modal-dialog {
     margin: 1rem;
   }
+
+  /* Alertas responsivas */
+  #alertContainer.position-fixed {
+    max-width: calc(100vw - 40px);
+    right: 20px;
+    left: 20px;
+  }
+
+  #alertContainer.position-fixed .alert {
+    font-size: 12px;
+    padding: 0.5rem;
+  }
 }
 
 /* Estilos para mensajes de alerta - más minimalistas */
 .alert {
   border: 1px solid;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 14px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.alert:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .alert-success {
   background-color: rgba(25, 135, 84, 0.1);
   color: var(--success-color);
   border-left: 4px solid var(--success-color);
+  border-color: rgba(25, 135, 84, 0.2);
 }
 
 .alert-danger {
   background-color: rgba(220, 53, 69, 0.1);
   color: var(--danger-color);
   border-left: 4px solid var(--danger-color);
+  border-color: rgba(220, 53, 69, 0.2);
 }
 
 .alert-warning {
   background-color: rgba(255, 193, 7, 0.1);
   color: var(--warning-color);
   border-left: 4px solid var(--warning-color);
+  border-color: rgba(255, 193, 7, 0.2);
 }
 
 .alert-info {
   background-color: rgba(13, 202, 240, 0.1);
   color: var(--info-color);
   border-left: 4px solid var(--info-color);
+  border-color: rgba(13, 202, 240, 0.2);
+}
+
+/* Contenedor de alertas */
+#alertContainer {
+  position: relative;
+  z-index: 1050;
+}
+
+#alertContainer.position-fixed {
+  max-width: 350px;
+  width: 100%;
+  top: 20px;
+  right: 20px;
+}
+
+#alertContainer.position-fixed .alert {
+  margin-bottom: 0.75rem;
+  animation: slideInRight 0.3s ease-out;
+  font-size: 13px;
+  padding: 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Animación de salida para las alertas */
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.alert.fade-out {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* Botón de cerrar alerta */
+.alert .btn-close {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.alert .btn-close:hover {
+  opacity: 1;
+}
+
+/* Iconos en alertas */
+.alert i {
+  font-size: 16px;
 }
 
 /* Estilos para tooltips personalizados */
