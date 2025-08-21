@@ -660,12 +660,12 @@ class TramiteView {
     const campoId = Date.now() + Math.random().toString(36).substr(2, 9);
     const campoHTML = `
       <div class="row mb-3 campo-dato" data-campo-id="${campoId}">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label">Nombre del Campo</label>
           <input type="text" class="form-control" 
                  placeholder="Ej: Nombre completo" required>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label">Tipo de Campo</label>
           <select class="form-select" required>
             <option value="">Seleccione tipo</option>
@@ -674,7 +674,12 @@ class TramiteView {
             <option value="numerico">Campo numérico</option>
           </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
+          <label class="form-label">Mensaje de Ayuda</label>
+          <textarea class="form-control" rows="2" 
+                    placeholder="Ej: Ingrese su nombre completo tal como aparece en su documento de identidad"></textarea>
+        </div>
+        <div class="col-md-2">
           <label class="form-label">&nbsp;</label>
           <div class="d-grid">
             <button type="button" class="btn btn-outline-danger btn-sm" 
@@ -789,15 +794,17 @@ class TramiteView {
     const datosRequeridos = [];
 
     campos.forEach(campo => {
-      const inputs = campo.querySelectorAll('input, select');
-      if (inputs.length >= 2) {
+      const inputs = campo.querySelectorAll('input, select, textarea');
+      if (inputs.length >= 3) {
         const nombreCampo = inputs[0].value.trim();
         const tipoCampo = inputs[1].value;
+        const mensajeAyuda = inputs[2].value.trim();
 
         if (nombreCampo && tipoCampo) {
           datosRequeridos.push({
             nombre: nombreCampo,
             tipo: tipoCampo,
+            mensajeAyuda: mensajeAyuda || '',
           });
         }
       }
@@ -1044,9 +1051,23 @@ class TramiteView {
         areaSolicitante: 'Académica',
         responsableValidacion: 'Dr. Juan Pérez',
         datosRequeridos: [
-          { nombre: 'Nombre completo', tipo: 'texto' },
-          { nombre: 'Fecha de nacimiento', tipo: 'fecha' },
-          { nombre: 'Número de identificación', tipo: 'numerico' },
+          {
+            nombre: 'Nombre completo',
+            tipo: 'texto',
+            mensajeAyuda:
+              'Ingrese su nombre completo tal como aparece en su documento de identidad',
+          },
+          {
+            nombre: 'Fecha de nacimiento',
+            tipo: 'fecha',
+            mensajeAyuda: 'Seleccione su fecha de nacimiento',
+          },
+          {
+            nombre: 'Número de identificación',
+            tipo: 'numerico',
+            mensajeAyuda:
+              'Ingrese su número de identificación sin puntos ni guiones',
+          },
         ],
         fechaCreacion: new Date().toISOString(),
       },
@@ -1057,9 +1078,22 @@ class TramiteView {
         areaSolicitante: 'Administrativa',
         responsableValidacion: 'Lic. María García',
         datosRequeridos: [
-          { nombre: 'Código de estudiante', tipo: 'numerico' },
-          { nombre: 'Programa académico', tipo: 'texto' },
-          { nombre: 'Fecha de expedición', tipo: 'fecha' },
+          {
+            nombre: 'Código de estudiante',
+            tipo: 'numerico',
+            mensajeAyuda: 'Ingrese su código de estudiante de 8 dígitos',
+          },
+          {
+            nombre: 'Programa académico',
+            tipo: 'texto',
+            mensajeAyuda:
+              'Seleccione el programa académico en el que está matriculado',
+          },
+          {
+            nombre: 'Fecha de expedición',
+            tipo: 'fecha',
+            mensajeAyuda: 'Fecha en la que se expide el certificado',
+          },
         ],
         fechaCreacion: new Date(Date.now() - 86400000).toISOString(), // 1 día atrás
       },
@@ -1173,17 +1207,21 @@ class TramiteView {
     let html =
       '<div class="table-responsive"><table class="table table-hover">';
     html +=
-      '<thead><tr><th>#</th><th>Nombre del Campo</th><th>Tipo</th><th>Icono</th></tr></thead><tbody>';
+      '<thead><tr><th>#</th><th>Nombre del Campo</th><th>Tipo</th><th>Mensaje de Ayuda</th><th>Icono</th></tr></thead><tbody>';
 
     datosRequeridos.forEach((dato, index) => {
       const tipoIcon = this.getTipoIcon(dato.tipo);
       const tipoText = this.getTipoText(dato.tipo);
+      const mensajeAyuda = dato.mensajeAyuda || 'Sin mensaje de ayuda';
 
       html += `
         <tr>
           <td><span class="badge bg-secondary">${index + 1}</span></td>
           <td><strong>${this.escapeHtml(dato.nombre)}</strong></td>
           <td><span class="badge bg-info">${tipoText}</span></td>
+          <td><small class="text-muted">${this.escapeHtml(
+            mensajeAyuda
+          )}</small></td>
           <td><i class="${tipoIcon} text-primary"></i></td>
         </tr>
       `;
