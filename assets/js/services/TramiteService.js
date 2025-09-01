@@ -31,6 +31,17 @@ class TramiteService {
   saveToStorage() {
     try {
       const tramitesData = this.tramites.map(tramite => tramite.toJSON());
+
+      // Log para verificar que el historial de fechas esté presente
+      tramitesData.forEach(tramite => {
+        if (tramite.historialFechas && tramite.historialFechas.length > 0) {
+          console.log(
+            `📊 Trámite "${tramite.nombre}" tiene ${tramite.historialFechas.length} registros en historial:`,
+            tramite.historialFechas
+          );
+        }
+      });
+
       console.log('Guardando en localStorage:', tramitesData);
       localStorage.setItem(this.storageKey, JSON.stringify(tramitesData));
       console.log('✅ Datos guardados exitosamente en localStorage');

@@ -248,11 +248,16 @@ class Tramite {
     };
 
     console.log('📅 Agregando fechas al historial:', registroFechas);
+    console.log('👤 Usuario que realiza el cambio:', usuario);
     console.log('📊 Historial antes:', this.historialFechas);
 
     this.historialFechas.push(registroFechas);
 
     console.log('📊 Historial después:', this.historialFechas);
+    console.log(
+      '🔍 Verificando que el usuario esté en el historial:',
+      this.historialFechas[this.historialFechas.length - 1].usuario
+    );
 
     // Actualizar las fechas principales con las más recientes
     this.fechaInicio = fechas.fechaInicio;

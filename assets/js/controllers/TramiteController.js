@@ -304,8 +304,17 @@ class TramiteController {
         tramite.historialFechas
       );
 
-      // Actualizar en el servicio
-      const result = this.service.update(this.currentTramiteId, tramite);
+      // Actualizar en el servicio - pasar solo los campos necesarios
+      const updateData = {
+        fechaInicio: tramite.fechaInicio,
+        fechaFinalizacion: tramite.fechaFinalizacion,
+        fechaInicioSubsanacion: tramite.fechaInicioSubsanacion,
+        fechaFinSubsanacion: tramite.fechaFinSubsanacion,
+        fechaModificacion: tramite.fechaModificacion,
+        historialFechas: tramite.historialFechas,
+      };
+
+      const result = this.service.update(this.currentTramiteId, updateData);
 
       if (result.success) {
         this.view.showAlert('Fechas guardadas exitosamente', 'success');
