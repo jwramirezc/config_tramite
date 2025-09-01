@@ -29,7 +29,6 @@ class TramiteController {
     }
 
     // Botones del modal de opciones
-
     const btnGestionarFechas = document.getElementById('btnGestionarFechas');
     if (btnGestionarFechas) {
       btnGestionarFechas.addEventListener('click', () =>
@@ -74,6 +73,19 @@ class TramiteController {
 
     // Validación de fechas en tiempo real
     this.initializeDateValidation();
+  }
+
+  /**
+   * Carga y muestra los trámites
+   */
+  loadTramites() {
+    try {
+      const tramites = this.service.getAll();
+      this.view.renderTable(tramites);
+    } catch (error) {
+      console.error('Error al cargar trámites:', error);
+      this.view.showAlert('Error al cargar los trámites', 'danger');
+    }
   }
 
   /**
@@ -140,19 +152,6 @@ class TramiteController {
       } else {
         fechaFinSubsanacion.setCustomValidity('');
       }
-    }
-  }
-
-  /**
-   * Carga y muestra los trámites
-   */
-  loadTramites() {
-    try {
-      const tramites = this.service.getAll();
-      this.view.renderTable(tramites);
-    } catch (error) {
-      console.error('Error al cargar trámites:', error);
-      this.view.showAlert('Error al cargar los trámites', 'danger');
     }
   }
 

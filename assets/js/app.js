@@ -3,7 +3,7 @@
  * Archivo que inicializa la aplicación y maneja eventos globales
  */
 
-// Variable global para el controlador
+// Variable global para el controlador principal
 let tramiteController;
 
 /**
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
   console.log('🚀 Inicializando Sistema de Gestión Documental...');
 
   try {
-    // Inicializar el controlador principal
+    // Inicializar el controlador principal (sin la funcionalidad de crear trámite)
     tramiteController = new TramiteController();
 
     // Configurar eventos adicionales
