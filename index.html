@@ -132,34 +132,7 @@
                             </select>
                         </div>
 
-                        <!-- Fechas -->
-                        <div class="mb-3">
-                            <label for="fechaInicio" class="form-label">
-                                Fecha de Inicio
-                            </label>
-                            <input type="date" class="form-control" id="fechaInicio" required>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="fechaFinalizacion" class="form-label">
-                                Fecha de Finalización
-                            </label>
-                            <input type="date" class="form-control" id="fechaFinalizacion" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="fechaInicioSubsanacion" class="form-label">
-                                Fecha Inicio subsanación
-                            </label>
-                            <input type="date" class="form-control" id="fechaInicioSubsanacion" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="fechaFinSubsanacion" class="form-label">
-                                Fecha Fin subsanación
-                            </label>
-                            <input type="date" class="form-control" id="fechaFinSubsanacion" required>
-                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -188,6 +161,10 @@
                 <div class="modal-body">
                     <div class="d-flex flex-column gap-2">
 
+                        <button type="button" class="btn btn-link text-start p-2 border-0" id="btnGestionarFechas">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Gestionar Fechas
+                        </button>
                         <button type="button" class="btn btn-link text-start p-2 border-0" id="btnAnadirDocumentos">
                             <i class="fas fa-file-upload me-2"></i>
                             Añadir Documentos
@@ -206,6 +183,90 @@
                             Eliminar Trámite
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Gestionar Fechas -->
+    <div class="modal fade" id="modalGestionarFechas" tabindex="-1" aria-labelledby="modalGestionarFechasLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalGestionarFechasLabel">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Gestionar Fechas del Trámite
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario para agregar nuevas fechas -->
+                    <form id="formGestionarFechas" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nuevaFechaInicio" class="form-label">
+                                        Fecha de Inicio
+                                    </label>
+                                    <input type="date" class="form-control" id="nuevaFechaInicio" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nuevaFechaFinalizacion" class="form-label">
+                                        Fecha de Finalización
+                                    </label>
+                                    <input type="date" class="form-control" id="nuevaFechaFinalizacion" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nuevaFechaInicioSubsanacion" class="form-label">
+                                        Fecha Inicio Subsanación
+                                    </label>
+                                    <input type="date" class="form-control" id="nuevaFechaInicioSubsanacion" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nuevaFechaFinSubsanacion" class="form-label">
+                                        Fecha Fin Subsanación
+                                    </label>
+                                    <input type="date" class="form-control" id="nuevaFechaFinSubsanacion" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                Agregar Fechas
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de historial de fechas -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Historial de Fechas
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="tablaHistorialFechasContainer">
+                                <!-- La tabla se generará dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
                 </div>
             </div>
         </div>

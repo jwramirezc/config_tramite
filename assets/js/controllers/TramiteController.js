@@ -30,6 +30,13 @@ class TramiteController {
 
     // Botones del modal de opciones
 
+    const btnGestionarFechas = document.getElementById('btnGestionarFechas');
+    if (btnGestionarFechas) {
+      btnGestionarFechas.addEventListener('click', () =>
+        this.gestionarFechas()
+      );
+    }
+
     const btnAnadirDocumentos = document.getElementById('btnAnadirDocumentos');
     if (btnAnadirDocumentos) {
       btnAnadirDocumentos.addEventListener('click', () =>
@@ -206,10 +213,6 @@ class TramiteController {
       'periodoSemestre',
       'sede',
       'jornada',
-      'fechaInicio',
-      'fechaFinalizacion',
-      'fechaInicioSubsanacion',
-      'fechaFinSubsanacion',
     ];
 
     const missingFields = requiredFields.filter(
@@ -243,6 +246,132 @@ class TramiteController {
   showOpciones(tramiteId) {
     this.currentTramiteId = tramiteId;
     this.view.showOpcionesModal(tramiteId);
+  }
+
+  /**
+   * Gestiona las fechas de un trámite
+   */
+  gestionarFechas() {
+    try {
+      if (!this.currentTramiteId) {
+        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        return;
+      }
+
+      const tramite = this.service.getById(this.currentTramiteId);
+      if (!tramite) {
+        this.view.showAlert('Trámite no encontrado', 'danger');
+        return;
+      }
+
+      this.view.hideOpcionesModal();
+      this.view.showGestionarFechasModal(tramite);
+    } catch (error) {
+      console.error('Error al abrir modal de fechas:', error);
+      this.view.showAlert('Error al abrir el modal de fechas', 'danger');
+    }
+  }
+
+  /**
+   * Guarda las fechas de un trámite
+   * @param {Object} fechas - Objeto con las fechas
+   */
+  guardarFechas(fechas) {
+    try {
+      if (!this.currentTramiteId) {
+        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        return;
+      }
+
+      const tramite = this.service.getById(this.currentTramiteId);
+      if (!tramite) {
+        this.view.showAlert('Trámite no encontrado', 'danger');
+        return;
+      }
+
+      // Validar fechas
+      if (!this.validarFechas(fechas)) {
+        return;
+      }
+
+      // Agregar fechas al historial
+      const usuario = 'Usuario'; // En un sistema real, esto vendría del contexto de autenticación
+      tramite.agregarFechas(fechas, usuario);
+
+      console.log('🔄 Trámite después de agregar fechas:', tramite);
+      console.log(
+        '📊 Historial de fechas del trámite:',
+        tramite.historialFechas
+      );
+
+      // Actualizar en el servicio
+      const result = this.service.update(this.currentTramiteId, tramite);
+
+      if (result.success) {
+        this.view.showAlert('Fechas guardadas exitosamente', 'success');
+        this.view.refreshHistorialFechas(tramite);
+        this.loadTramites(); // Actualizar la tabla principal
+      } else {
+        this.view.showAlert(result.errors.join(', '), 'danger');
+      }
+    } catch (error) {
+      console.error('Error al guardar fechas:', error);
+      this.view.showAlert('Error al guardar las fechas', 'danger');
+    }
+  }
+
+  /**
+   * Valida las fechas ingresadas
+   * @param {Object} fechas - Objeto con las fechas
+   * @returns {boolean} True si las fechas son válidas
+   */
+  validarFechas(fechas) {
+    const {
+      fechaInicio,
+      fechaFinalizacion,
+      fechaInicioSubsanacion,
+      fechaFinSubsanacion,
+    } = fechas;
+
+    // Validar que todas las fechas estén presentes
+    if (
+      !fechaInicio ||
+      !fechaFinalizacion ||
+      !fechaInicioSubsanacion ||
+      !fechaFinSubsanacion
+    ) {
+      this.view.showAlert('Todas las fechas son requeridas', 'warning');
+      return false;
+    }
+
+    // Validar que la fecha de finalización sea posterior a la de inicio
+    if (new Date(fechaInicio) >= new Date(fechaFinalizacion)) {
+      this.view.showAlert(
+        'La fecha de finalización debe ser posterior a la fecha de inicio',
+        'warning'
+      );
+      return false;
+    }
+
+    // Validar que la fecha fin de subsanación sea posterior a la fecha inicio de subsanación
+    if (new Date(fechaInicioSubsanacion) >= new Date(fechaFinSubsanacion)) {
+      this.view.showAlert(
+        'La fecha fin de subsanación debe ser posterior a la fecha inicio de subsanación',
+        'warning'
+      );
+      return false;
+    }
+
+    // Validar que la fecha de inicio de subsanación sea posterior a la fecha de finalización del trámite
+    if (new Date(fechaInicioSubsanacion) <= new Date(fechaFinalizacion)) {
+      this.view.showAlert(
+        'La fecha de inicio de subsanación debe ser posterior a la fecha de finalización del trámite',
+        'warning'
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**

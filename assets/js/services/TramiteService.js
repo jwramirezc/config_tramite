@@ -31,7 +31,9 @@ class TramiteService {
   saveToStorage() {
     try {
       const tramitesData = this.tramites.map(tramite => tramite.toJSON());
+      console.log('Guardando en localStorage:', tramitesData);
       localStorage.setItem(this.storageKey, JSON.stringify(tramitesData));
+      console.log('✅ Datos guardados exitosamente en localStorage');
     } catch (error) {
       console.error('Error al guardar trámites en localStorage:', error);
     }

@@ -32,6 +32,8 @@ class TramiteView {
                             <th class="text-center">Jornada</th>
                             <th class="text-center">Fecha Inicio</th>
                             <th class="text-center">Fecha Fin</th>
+                            <th class="text-center">Fecha Inicio Subs</th>
+                            <th class="text-center">Fecha Fin Subs</th>
                             <th class="text-center">Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -74,10 +76,16 @@ class TramiteView {
                     ${this.escapeHtml(tramite.jornada)}
                 </td>
                 <td class="text-center">
-                    ${Tramite.formatDate(tramite.fechaInicio)}
+                    ${this.getFechaDisplay(tramite, 'fechaInicio')}
                 </td>
                 <td class="text-center">
-                    ${Tramite.formatDate(tramite.fechaFinalizacion)}
+                    ${this.getFechaDisplay(tramite, 'fechaFinalizacion')}
+                </td>
+                <td class="text-center">
+                    ${this.getFechaDisplay(tramite, 'fechaInicioSubsanacion')}
+                </td>
+                <td class="text-center">
+                    ${this.getFechaDisplay(tramite, 'fechaFinSubsanacion')}
                 </td>
                 <td class="text-center">
                     <span class="status-badge ${estadoClass}">
@@ -122,8 +130,9 @@ class TramiteView {
       activo: 'status-activo',
       pendiente: 'status-pendiente',
       finalizado: 'status-finalizado',
-      subsanacion: 'status-pendiente',
+      subsanación: 'status-pendiente',
       inactivo: 'status-finalizado',
+      sin_fechas: 'status-pendiente',
     };
     return classes[estado] || 'status-pendiente';
   }
@@ -138,8 +147,9 @@ class TramiteView {
       activo: 'fas fa-play-circle',
       pendiente: 'fas fa-clock',
       finalizado: 'fas fa-check-circle',
-      subsanacion: 'fas fa-exclamation-triangle',
+      subsanación: 'fas fa-exclamation-triangle',
       inactivo: 'fas fa-pause-circle',
+      sin_fechas: 'fas fa-calendar-times',
     };
     return icons[estado] || 'fas fa-question-circle';
   }
@@ -154,8 +164,9 @@ class TramiteView {
       activo: 'Activo',
       pendiente: 'Pendiente',
       finalizado: 'Finalizado',
-      subsanacion: 'Subsanación',
+      subsanación: 'Subsanación',
       inactivo: 'Inactivo',
+      sin_fechas: 'Sin Fechas',
     };
     return texts[estado] || 'Desconocido';
   }
@@ -198,6 +209,177 @@ class TramiteView {
   }
 
   /**
+   * Muestra el modal de gestionar fechas
+   * @param {Tramite} tramite - Trámite para gestionar fechas
+   */
+  showGestionarFechasModal(tramite) {
+    this.currentTramiteId = tramite.id;
+
+    // Limpiar formulario
+    this.clearFormFechas();
+
+    // Renderizar historial de fechas
+    this.renderHistorialFechas(tramite);
+
+    // Configurar event listener para el formulario
+    this.setupFormFechasEventListeners();
+
+    const modal = new bootstrap.Modal(
+      document.getElementById('modalGestionarFechas')
+    );
+    modal.show();
+  }
+
+  /**
+   * Configura los event listeners del formulario de fechas
+   */
+  setupFormFechasEventListeners() {
+    const form = document.getElementById('formGestionarFechas');
+    if (form) {
+      // Remover event listeners anteriores
+      form.removeEventListener('submit', this.handleFormFechasSubmit);
+
+      // Agregar nuevo event listener
+      this.handleFormFechasSubmit = e => {
+        e.preventDefault();
+        this.submitFormFechas();
+      };
+
+      form.addEventListener('submit', this.handleFormFechasSubmit);
+    }
+  }
+
+  /**
+   * Maneja el envío del formulario de fechas
+   */
+  submitFormFechas() {
+    const formData = {
+      fechaInicio: document.getElementById('nuevaFechaInicio').value,
+      fechaFinalizacion: document.getElementById('nuevaFechaFinalizacion')
+        .value,
+      fechaInicioSubsanacion: document.getElementById(
+        'nuevaFechaInicioSubsanacion'
+      ).value,
+      fechaFinSubsanacion: document.getElementById('nuevaFechaFinSubsanacion')
+        .value,
+    };
+
+    if (tramiteController) {
+      tramiteController.guardarFechas(formData);
+    }
+  }
+
+  /**
+   * Limpia el formulario de fechas
+   */
+  clearFormFechas() {
+    const form = document.getElementById('formGestionarFechas');
+    if (form) {
+      form.reset();
+    }
+  }
+
+  /**
+   * Renderiza el historial de fechas
+   * @param {Tramite} tramite - Trámite para mostrar el historial
+   */
+  renderHistorialFechas(tramite) {
+    const container = document.getElementById('tablaHistorialFechasContainer');
+    if (!container) return;
+
+    const historial = tramite.getHistorialFechasOrdenado();
+
+    if (historial.length === 0) {
+      container.innerHTML = `
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+          <p>No hay historial de fechas para este trámite</p>
+        </div>
+      `;
+      return;
+    }
+
+    const tableHTML = `
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center">Fecha Inicio</th>
+              <th class="text-center">Fecha Fin</th>
+              <th class="text-center">Inicio Subsanación</th>
+              <th class="text-center">Fin Subsanación</th>
+              <th class="text-center">Fecha</th>
+              <th class="text-center">Usuario</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${historial
+              .map(registro => this.renderHistorialRow(registro))
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = tableHTML;
+  }
+
+  /**
+   * Renderiza una fila del historial de fechas
+   * @param {Object} registro - Registro de fechas
+   * @returns {string} HTML de la fila
+   */
+  renderHistorialRow(registro) {
+    return `
+      <tr>
+        <td class="text-center">${Tramite.formatDate(registro.fechaInicio)}</td>
+        <td class="text-center">${Tramite.formatDate(
+          registro.fechaFinalizacion
+        )}</td>
+        <td class="text-center">${Tramite.formatDate(
+          registro.fechaInicioSubsanacion
+        )}</td>
+        <td class="text-center">${Tramite.formatDate(
+          registro.fechaFinSubsanacion
+        )}</td>
+        <td class="text-center">${Tramite.formatDate(registro.fechaCambio)}</td>
+        <td class="text-center"><span class="badge bg-secondary">${
+          registro.usuario
+        }</span></td>
+      </tr>
+    `;
+  }
+
+  /**
+   * Refresca el historial de fechas
+   * @param {Tramite} tramite - Trámite actualizado
+   */
+  refreshHistorialFechas(tramite) {
+    this.renderHistorialFechas(tramite);
+  }
+
+  /**
+   * Obtiene la fecha para mostrar en la tabla principal
+   * @param {Tramite} tramite - Trámite
+   * @param {string} tipoFecha - Tipo de fecha a mostrar
+   * @returns {string} Fecha formateada o mensaje
+   */
+  getFechaDisplay(tramite, tipoFecha) {
+    const fechasMasRecientes = tramite.getFechasMasRecientes();
+
+    if (fechasMasRecientes && fechasMasRecientes[tipoFecha]) {
+      return Tramite.formatDate(fechasMasRecientes[tipoFecha]);
+    }
+
+    // Si no hay historial, mostrar las fechas principales
+    if (tramite[tipoFecha]) {
+      return Tramite.formatDate(tramite[tipoFecha]);
+    }
+
+    return '<span class="text-muted">Sin fecha</span>';
+  }
+
+  /**
    * Actualiza el texto del botón Activar/Inactivar según el estado del trámite
    * @param {Tramite} tramite - Trámite para obtener su estado
    */
@@ -226,13 +408,19 @@ class TramiteView {
         botonElement.disabled = true;
         botonElement.classList.add('text-muted');
 
-        // Mostrar el estado actual
-        const estadoText = this.getEstadoText(estado);
-        textoElement.textContent = `${estadoText} (Automático)`;
+        // Caso especial para trámites sin fechas
+        if (estado === 'sin_fechas') {
+          textoElement.textContent = 'Inactivar trámite';
+          iconElement.className = 'fas fa-ban me-2';
+        } else {
+          // Mostrar el estado actual para otros estados
+          const estadoText = this.getEstadoText(estado);
+          textoElement.textContent = `${estadoText} (Automático)`;
 
-        // Icono según el estado
-        const estadoIcon = this.getEstadoIcon(estado);
-        iconElement.className = `${estadoIcon} me-2`;
+          // Icono según el estado
+          const estadoIcon = this.getEstadoIcon(estado);
+          iconElement.className = `${estadoIcon} me-2`;
+        }
       }
     }
   }

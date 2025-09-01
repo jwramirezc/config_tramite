@@ -192,6 +192,12 @@ header {
   border: 1px solid var(--secondary-color);
 }
 
+.status-no-dates {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger-color);
+  border: 1px solid var(--danger-color);
+}
+
 /* Animaciones */
 @keyframes fadeIn {
   from {

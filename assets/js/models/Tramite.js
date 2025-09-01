@@ -22,6 +22,7 @@ class Tramite {
     this.fechaModificacion = data.fechaModificacion || new Date().toISOString();
     this.estado = data.estado || 'activo';
     this.observaciones = data.observaciones || '';
+    this.historialFechas = data.historialFechas || [];
   }
 
   /**
@@ -46,10 +47,6 @@ class Tramite {
       'periodoSemestre',
       'sede',
       'jornada',
-      'fechaInicio',
-      'fechaFinalizacion',
-      'fechaInicioSubsanacion',
-      'fechaFinSubsanacion',
     ];
 
     requiredFields.forEach(field => {
@@ -104,6 +101,7 @@ class Tramite {
       fechaModificacion: this.fechaModificacion,
       estado: this.estado,
       observaciones: this.observaciones,
+      historialFechas: this.historialFechas,
     };
   }
 
@@ -114,7 +112,12 @@ class Tramite {
   update(newData) {
     Object.keys(newData).forEach(key => {
       if (this.hasOwnProperty(key)) {
-        this[key] = newData[key];
+        // Preservar el historial de fechas si se está actualizando
+        if (key === 'historialFechas' && Array.isArray(newData[key])) {
+          this[key] = [...newData[key]];
+        } else {
+          this[key] = newData[key];
+        }
       }
     });
     this.fechaModificacion = new Date().toISOString();
@@ -161,6 +164,16 @@ class Tramite {
    * @returns {string} Estado del trámite
    */
   getEstadoPorFechas() {
+    // Si no hay fechas configuradas, retornar estado por defecto
+    if (
+      !this.fechaInicio ||
+      !this.fechaFinalizacion ||
+      !this.fechaInicioSubsanacion ||
+      !this.fechaFinSubsanacion
+    ) {
+      return 'sin_fechas';
+    }
+
     const hoy = new Date();
     const fechaInicio = new Date(this.fechaInicio);
     const fechaFinalizacion = new Date(this.fechaFinalizacion);
@@ -181,7 +194,7 @@ class Tramite {
     } else if (hoy >= fechaInicio && hoy <= fechaFinalizacion) {
       return 'activo';
     } else if (hoy >= fechaInicioSubsanacion && hoy <= fechaFinSubsanacion) {
-      return 'subsanacion';
+      return 'subsanación';
     } else if (hoy > fechaFinSubsanacion) {
       return 'finalizado';
     } else {
@@ -215,10 +228,68 @@ class Tramite {
       periodoSemestre: formData.periodoSemestre,
       sede: formData.sede,
       jornada: formData.jornada,
-      fechaInicio: formData.fechaInicio,
-      fechaFinalizacion: formData.fechaFinalizacion,
-      fechaInicioSubsanacion: formData.fechaInicioSubsanacion,
-      fechaFinSubsanacion: formData.fechaFinSubsanacion,
     });
+  }
+
+  /**
+   * Agrega un nuevo registro de fechas al historial
+   * @param {Object} fechas - Objeto con las fechas
+   * @param {string} usuario - Usuario que realiza el cambio
+   */
+  agregarFechas(fechas, usuario = 'Usuario') {
+    const registroFechas = {
+      id: `fecha_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      fechaInicio: fechas.fechaInicio,
+      fechaFinalizacion: fechas.fechaFinalizacion,
+      fechaInicioSubsanacion: fechas.fechaInicioSubsanacion,
+      fechaFinSubsanacion: fechas.fechaFinSubsanacion,
+      fechaCambio: new Date().toISOString(),
+      usuario: usuario,
+    };
+
+    console.log('📅 Agregando fechas al historial:', registroFechas);
+    console.log('📊 Historial antes:', this.historialFechas);
+
+    this.historialFechas.push(registroFechas);
+
+    console.log('📊 Historial después:', this.historialFechas);
+
+    // Actualizar las fechas principales con las más recientes
+    this.fechaInicio = fechas.fechaInicio;
+    this.fechaFinalizacion = fechas.fechaFinalizacion;
+    this.fechaInicioSubsanacion = fechas.fechaInicioSubsanacion;
+    this.fechaFinSubsanacion = fechas.fechaFinSubsanacion;
+
+    this.fechaModificacion = new Date().toISOString();
+
+    console.log('✅ Fechas agregadas al historial exitosamente');
+    return registroFechas;
+  }
+
+  /**
+   * Obtiene las fechas más recientes del historial
+   * @returns {Object|null} Objeto con las fechas más recientes o null si no hay historial
+   */
+  getFechasMasRecientes() {
+    if (this.historialFechas.length === 0) {
+      return null;
+    }
+
+    // Ordenar por fecha de cambio descendente y tomar el más reciente
+    const fechasOrdenadas = [...this.historialFechas].sort(
+      (a, b) => new Date(b.fechaCambio) - new Date(a.fechaCambio)
+    );
+
+    return fechasOrdenadas[0];
+  }
+
+  /**
+   * Obtiene el historial de fechas ordenado por fecha de cambio
+   * @returns {Array} Array de registros de fechas ordenados
+   */
+  getHistorialFechasOrdenado() {
+    return [...this.historialFechas].sort(
+      (a, b) => new Date(b.fechaCambio) - new Date(a.fechaCambio)
+    );
   }
 }
