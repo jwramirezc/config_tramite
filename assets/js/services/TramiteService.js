@@ -1,263 +1,240 @@
 /**
  * Servicio para manejo de trámites
- * Clase que maneja la persistencia y operaciones CRUD de trámites
+ * Extiende BaseService para operaciones CRUD específicas de trámites
  */
-class TramiteService {
+class TramiteService extends BaseService {
   constructor() {
-    this.storageKey = 'tramites_data';
-    this.tramites = this.loadFromStorage();
+    super('Tramite', 'tramites_data');
   }
 
   /**
-   * Carga los trámites desde localStorage
-   * @returns {Array} Array de trámites
+   * Inicializa el servicio
    */
-  loadFromStorage() {
-    try {
-      const data = localStorage.getItem(this.storageKey);
-      if (data) {
-        const tramitesData = JSON.parse(data);
-        return tramitesData.map(tramiteData => new Tramite(tramiteData));
-      }
-    } catch (error) {
-      console.error('Error al cargar trámites desde localStorage:', error);
+  async initialize() {
+    await super.initialize();
+    console.log('📋 TramiteService inicializado');
+  }
+
+  /**
+   * Crea una entidad desde datos
+   * @param {Object} data - Datos de la entidad
+   * @returns {Tramite} Entidad creada
+   */
+  createEntityFromData(data) {
+    return new Tramite(data);
+  }
+
+  /**
+   * Valida un item antes de crear
+   * @param {Tramite} tramite - Trámite a validar
+   * @returns {Object} Resultado de la validación
+   */
+  validateItem(tramite) {
+    return tramite.validate();
+  }
+
+  /**
+   * Verifica duplicados antes de crear
+   * @param {Tramite} tramite - Trámite a verificar
+   * @returns {Object} Resultado de la verificación
+   */
+  checkForDuplicates(tramite) {
+    // Verificar si ya existe un trámite con el mismo nombre
+    const existingTramite = this.items.find(
+      t => t.nombre.toLowerCase() === tramite.nombre.toLowerCase()
+    );
+
+    if (existingTramite) {
+      return {
+        isValid: false,
+        errors: ['Ya existe un trámite con ese nombre'],
+      };
     }
-    return [];
+
+    return { isValid: true, errors: [] };
   }
 
   /**
-   * Guarda los trámites en localStorage
+   * Valida datos de actualización
+   * @param {Tramite} tramite - Trámite existente
+   * @param {Object} newData - Nuevos datos
+   * @returns {Object} Resultado de la validación
    */
-  saveToStorage() {
-    try {
-      const tramitesData = this.tramites.map(tramite => tramite.toJSON());
-
-      // Log para verificar que el historial de fechas esté presente
-      tramitesData.forEach(tramite => {
-        if (tramite.historialFechas && tramite.historialFechas.length > 0) {
-          console.log(
-            `📊 Trámite "${tramite.nombre}" tiene ${tramite.historialFechas.length} registros en historial:`,
-            tramite.historialFechas
-          );
-        }
-      });
-
-      console.log('Guardando en localStorage:', tramitesData);
-      localStorage.setItem(this.storageKey, JSON.stringify(tramitesData));
-      console.log('✅ Datos guardados exitosamente en localStorage');
-    } catch (error) {
-      console.error('Error al guardar trámites en localStorage:', error);
-    }
-  }
-
-  /**
-   * Obtiene todos los trámites
-   * @returns {Array} Array de trámites
-   */
-  getAll() {
-    return [...this.tramites];
-  }
-
-  /**
-   * Obtiene un trámite por ID
-   * @param {string} id - ID del trámite
-   * @returns {Tramite|null} Trámite encontrado o null
-   */
-  getById(id) {
-    return this.tramites.find(tramite => tramite.id === id) || null;
-  }
-
-  /**
-   * Crea un nuevo trámite
-   * @param {Tramite} tramite - Trámite a crear
-   * @returns {Object} Resultado de la operación
-   */
-  create(tramite) {
-    try {
-      // Validar el trámite
-      const validation = tramite.validate();
-      if (!validation.isValid) {
-        return {
-          success: false,
-          errors: validation.errors,
-        };
-      }
-
-      // Verificar si ya existe un trámite con el mismo nombre
-      const existingTramite = this.tramites.find(
-        t => t.nombre.toLowerCase() === tramite.nombre.toLowerCase()
+  validateUpdateData(tramite, newData) {
+    // Si se está cambiando el nombre, verificar duplicados
+    if (newData.nombre && newData.nombre !== tramite.nombre) {
+      const existingTramite = this.items.find(
+        t =>
+          t.id !== tramite.id &&
+          t.nombre.toLowerCase() === newData.nombre.toLowerCase()
       );
 
       if (existingTramite) {
         return {
-          success: false,
+          isValid: false,
           errors: ['Ya existe un trámite con ese nombre'],
         };
       }
-
-      // Agregar el trámite
-      this.tramites.push(tramite);
-      this.saveToStorage();
-
-      return {
-        success: true,
-        tramite: tramite,
-        message: 'Trámite creado exitosamente',
-      };
-    } catch (error) {
-      console.error('Error al crear trámite:', error);
-      return {
-        success: false,
-        errors: ['Error interno al crear el trámite'],
-      };
     }
+
+    return { isValid: true, errors: [] };
   }
 
   /**
-   * Actualiza un trámite existente
-   * @param {string} id - ID del trámite
-   * @param {Object} newData - Nuevos datos
-   * @returns {Object} Resultado de la operación
+   * Obtiene trámites por sede
+   * @param {string} sede - Sede a filtrar
+   * @returns {Array} Array de trámites de la sede
    */
-  update(id, newData) {
-    try {
-      const tramite = this.getById(id);
-      if (!tramite) {
-        return {
-          success: false,
-          errors: ['Trámite no encontrado'],
-        };
-      }
-
-      // Verificar si es solo una actualización de estado
-      const isOnlyStateUpdate =
-        Object.keys(newData).length === 1 && newData.hasOwnProperty('estado');
-
-      if (!isOnlyStateUpdate) {
-        // Crear un trámite temporal para validar (solo si no es solo actualización de estado)
-        const tempTramite = new Tramite({ ...tramite.toJSON(), ...newData });
-        const validation = tempTramite.validate();
-
-        if (!validation.isValid) {
-          return {
-            success: false,
-            errors: validation.errors,
-          };
-        }
-
-        // Verificar si el nombre ya existe en otro trámite (solo si no es solo actualización de estado)
-        const existingTramite = this.tramites.find(
-          t =>
-            t.id !== id &&
-            t.nombre.toLowerCase() === tempTramite.nombre.toLowerCase()
-        );
-
-        if (existingTramite) {
-          return {
-            success: false,
-            errors: ['Ya existe un trámite con ese nombre'],
-          };
-        }
-      }
-
-      // Actualizar el trámite
-      tramite.update(newData);
-      this.saveToStorage();
-
-      return {
-        success: true,
-        tramite: tramite,
-        message: 'Trámite actualizado exitosamente',
-      };
-    } catch (error) {
-      console.error('Error al actualizar trámite:', error);
-      return {
-        success: false,
-        errors: ['Error interno al actualizar el trámite'],
-      };
-    }
+  getBySede(sede) {
+    this.validateInitialization();
+    return this.items.filter(tramite => tramite.sede === sede);
   }
 
   /**
-   * Elimina un trámite
-   * @param {string} id - ID del trámite
-   * @returns {Object} Resultado de la operación
+   * Obtiene trámites por jornada
+   * @param {string} jornada - Jornada a filtrar
+   * @returns {Array} Array de trámites de la jornada
    */
-  delete(id) {
-    try {
-      const index = this.tramites.findIndex(tramite => tramite.id === id);
-      if (index === -1) {
-        return {
-          success: false,
-          errors: ['Trámite no encontrado'],
-        };
-      }
-
-      const tramiteEliminado = this.tramites.splice(index, 1)[0];
-      this.saveToStorage();
-
-      return {
-        success: true,
-        tramite: tramiteEliminado,
-        message: 'Trámite eliminado exitosamente',
-      };
-    } catch (error) {
-      console.error('Error al eliminar trámite:', error);
-      return {
-        success: false,
-        errors: ['Error interno al eliminar el trámite'],
-      };
-    }
+  getByJornada(jornada) {
+    this.validateInitialization();
+    return this.items.filter(tramite => tramite.jornada === jornada);
   }
 
   /**
-   * Busca trámites por criterios
-   * @param {Object} criteria - Criterios de búsqueda
-   * @returns {Array} Array de trámites que coinciden
+   * Obtiene trámites por periodo
+   * @param {string} periodoAnio - Año del periodo
+   * @param {string} periodoSemestre - Semestre del periodo
+   * @returns {Array} Array de trámites del periodo
    */
-  search(criteria = {}) {
-    return this.tramites.filter(tramite => {
-      // Búsqueda por nombre
-      if (
-        criteria.nombre &&
-        !tramite.nombre.toLowerCase().includes(criteria.nombre.toLowerCase())
-      ) {
-        return false;
-      }
+  getByPeriodo(periodoAnio, periodoSemestre) {
+    this.validateInitialization();
+    return this.items.filter(
+      tramite =>
+        tramite.periodoAnio === periodoAnio &&
+        tramite.periodoSemestre === periodoSemestre
+    );
+  }
 
-      // Búsqueda por sede
-      if (criteria.sede && tramite.sede !== criteria.sede) {
-        return false;
-      }
+  /**
+   * Obtiene trámites activos
+   * @returns {Array} Array de trámites activos
+   */
+  getActivos() {
+    this.validateInitialization();
+    return this.items.filter(tramite => tramite.isActivo());
+  }
 
-      // Búsqueda por jornada
-      if (criteria.jornada && tramite.jornada !== criteria.jornada) {
-        return false;
-      }
+  /**
+   * Obtiene trámites por estado
+   * @param {string} estado - Estado del trámite
+   * @returns {Array} Array de trámites del estado especificado
+   */
+  getByEstado(estado) {
+    this.validateInitialization();
+    return this.items.filter(
+      tramite => tramite.getEstadoPorFechas() === estado
+    );
+  }
 
-      // Búsqueda por estado
-      if (criteria.estado && tramite.estado !== criteria.estado) {
-        return false;
-      }
+  /**
+   * Obtiene trámites que están en periodo de subsanación
+   * @returns {Array} Array de trámites en subsanación
+   */
+  getEnSubsanacion() {
+    this.validateInitialization();
+    return this.items.filter(tramite => tramite.isEnSubsanacion());
+  }
 
-      return true;
+  /**
+   * Obtiene trámites que expiran pronto
+   * @param {number} diasAdvertencia - Número de días para la advertencia (por defecto 7)
+   * @returns {Array} Array de trámites que expiran pronto
+   */
+  getQueExpiranPronto(diasAdvertencia = 7) {
+    this.validateInitialization();
+    const fechaLimite = new Date();
+    fechaLimite.setDate(fechaLimite.getDate() + diasAdvertencia);
+
+    return this.items.filter(tramite => {
+      if (!tramite.fechaFinalizacion) return false;
+      const fechaFin = new Date(tramite.fechaFinalizacion);
+      return fechaFin <= fechaLimite && fechaFin > new Date();
     });
   }
 
   /**
-   * Obtiene estadísticas de los trámites
-   * @returns {Object} Estadísticas
+   * Obtiene trámites por rango de fechas
+   * @param {Date|string} fechaInicio - Fecha de inicio del rango
+   * @param {Date|string} fechaFin - Fecha de fin del rango
+   * @returns {Array} Array de trámites en el rango especificado
+   */
+  getByRangoFechas(fechaInicio, fechaFin) {
+    this.validateInitialization();
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+
+    return this.items.filter(tramite => {
+      if (!tramite.fechaCreacion) return false;
+      const fechaCreacion = new Date(tramite.fechaCreacion);
+      return fechaCreacion >= inicio && fechaCreacion <= fin;
+    });
+  }
+
+  /**
+   * Busca trámites por texto
+   * @param {string} searchText - Texto a buscar
+   * @returns {Array} Array de trámites que coinciden
+   */
+  searchByText(searchText) {
+    this.validateInitialization();
+    if (!searchText || searchText.trim() === '') {
+      return this.getAll();
+    }
+
+    const searchLower = searchText.toLowerCase();
+    return this.items.filter(tramite => {
+      return (
+        tramite.nombre.toLowerCase().includes(searchLower) ||
+        tramite.sede.toLowerCase().includes(searchLower) ||
+        tramite.jornada.toLowerCase().includes(searchLower) ||
+        tramite.observaciones.toLowerCase().includes(searchLower)
+      );
+    });
+  }
+
+  /**
+   * Obtiene estadísticas de trámites
+   * @returns {Object} Estadísticas de trámites
    */
   getStats() {
-    const total = this.tramites.length;
-    const activos = this.tramites.filter(t => t.isActivo()).length;
-    const pendientes = this.tramites.filter(
-      t => t.getEstadoPorFechas() === 'pendiente'
-    ).length;
-    const finalizados = this.tramites.filter(
-      t => t.getEstadoPorFechas() === 'finalizado'
-    ).length;
-    const enSubsanacion = this.tramites.filter(t => t.isEnSubsanacion()).length;
+    this.validateInitialization();
+
+    const total = this.items.length;
+    const activos = this.getActivos().length;
+    const pendientes = this.getByEstado('pendiente').length;
+    const finalizados = this.getByEstado('finalizado').length;
+    const enSubsanacion = this.getEnSubsanacion().length;
+
+    // Estadísticas por sede
+    const sedesStats = {};
+    const sedes = [...new Set(this.items.map(t => t.sede))];
+    sedes.forEach(sede => {
+      sedesStats[sede] = this.getBySede(sede).length;
+    });
+
+    // Estadísticas por jornada
+    const jornadasStats = {};
+    const jornadas = [...new Set(this.items.map(t => t.jornada))];
+    jornadas.forEach(jornada => {
+      jornadasStats[jornada] = this.getByJornada(jornada).length;
+    });
+
+    // Estadísticas por periodo
+    const periodosStats = {};
+    this.items.forEach(tramite => {
+      const periodo = `${tramite.periodoAnio}-${tramite.periodoSemestre}`;
+      periodosStats[periodo] = (periodosStats[periodo] || 0) + 1;
+    });
 
     return {
       total,
@@ -265,78 +242,10 @@ class TramiteService {
       pendientes,
       finalizados,
       enSubsanacion,
+      sedes: sedesStats,
+      jornadas: jornadasStats,
+      periodos: periodosStats,
     };
-  }
-
-  /**
-   * Exporta los trámites a JSON
-   * @returns {string} JSON string de los trámites
-   */
-  exportToJSON() {
-    try {
-      const tramitesData = this.tramites.map(tramite => tramite.toJSON());
-      return JSON.stringify(tramitesData, null, 2);
-    } catch (error) {
-      console.error('Error al exportar trámites:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Importa trámites desde JSON
-   * @param {string} jsonData - Datos JSON
-   * @returns {Object} Resultado de la operación
-   */
-  importFromJSON(jsonData) {
-    try {
-      const tramitesData = JSON.parse(jsonData);
-      const tramitesImportados = [];
-
-      for (const data of tramitesData) {
-        const tramite = new Tramite(data);
-        const validation = tramite.validate();
-
-        if (validation.isValid) {
-          tramitesImportados.push(tramite);
-        }
-      }
-
-      this.tramites = [...this.tramites, ...tramitesImportados];
-      this.saveToStorage();
-
-      return {
-        success: true,
-        imported: tramitesImportados.length,
-        message: `${tramitesImportados.length} trámites importados exitosamente`,
-      };
-    } catch (error) {
-      console.error('Error al importar trámites:', error);
-      return {
-        success: false,
-        errors: ['Error al importar los trámites'],
-      };
-    }
-  }
-
-  /**
-   * Limpia todos los datos
-   * @returns {Object} Resultado de la operación
-   */
-  clearAll() {
-    try {
-      this.tramites = [];
-      this.saveToStorage();
-      return {
-        success: true,
-        message: 'Todos los trámites han sido eliminados',
-      };
-    } catch (error) {
-      console.error('Error al limpiar trámites:', error);
-      return {
-        success: false,
-        errors: ['Error al limpiar los trámites'],
-      };
-    }
   }
 
   /**
@@ -346,8 +255,9 @@ class TramiteService {
    */
   generateSampleData(count = 5) {
     try {
-      const sampleTramites = [];
+      this.validateInitialization();
 
+      const sampleTramites = [];
       const sedes = ['Principal', 'Norte', 'Sur'];
       const jornadas = ['Diurna', 'Nocturna'];
 
@@ -381,20 +291,65 @@ class TramiteService {
         sampleTramites.push(tramite);
       }
 
-      this.tramites = [...this.tramites, ...sampleTramites];
+      this.items = [...this.items, ...sampleTramites];
       this.saveToStorage();
 
       return {
         success: true,
         generated: sampleTramites.length,
         message: `${sampleTramites.length} trámites de ejemplo generados`,
+        tramites: sampleTramites,
       };
     } catch (error) {
-      console.error('Error al generar datos de ejemplo:', error);
+      console.error('❌ Error al generar datos de ejemplo:', error);
       return {
         success: false,
         errors: ['Error al generar datos de ejemplo'],
       };
     }
+  }
+
+  /**
+   * Obtiene trámites que requieren atención
+   * @returns {Array} Array de trámites que requieren atención
+   */
+  getTramitesQueRequierenAtencion() {
+    this.validateInitialization();
+    const tramitesAtencion = [];
+
+    // Trámites que expiran pronto
+    const expiranPronto = this.getQueExpiranPronto(7);
+    expiranPronto.forEach(tramite => {
+      tramite.prioridad = 'alta';
+      tramite.razonAtencion = 'Expira pronto';
+      tramitesAtencion.push(tramite);
+    });
+
+    // Trámites sin fechas configuradas
+    const sinFechas = this.items.filter(
+      tramite =>
+        !tramite.fechaInicio ||
+        !tramite.fechaFinalizacion ||
+        !tramite.fechaInicioSubsanacion ||
+        !tramite.fechaFinSubsanacion
+    );
+    sinFechas.forEach(tramite => {
+      tramite.prioridad = 'media';
+      tramite.razonAtencion = 'Sin fechas configuradas';
+      tramitesAtencion.push(tramite);
+    });
+
+    // Trámites con fechas pasadas
+    const fechasPasadas = this.items.filter(tramite => {
+      if (!tramite.fechaFinalizacion) return false;
+      return new Date(tramite.fechaFinalizacion) < new Date();
+    });
+    fechasPasadas.forEach(tramite => {
+      tramite.prioridad = 'baja';
+      tramite.razonAtencion = 'Fechas pasadas';
+      tramitesAtencion.push(tramite);
+    });
+
+    return tramitesAtencion;
   }
 }
