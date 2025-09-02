@@ -115,33 +115,30 @@ class TramiteApp {
     // Crear instancias de controladores
     this.tramiteController = new TramiteController(
       this.tramiteService,
-      this.documentoService,
-      this.fechaService,
-      this.estadoService
+      null, // TramiteView se creará después
+      this.eventManager // Pasar el EventManager compartido
     );
 
     this.documentoController = new DocumentoController(
       this.documentoService,
-      this.tramiteService
+      this.tramiteService,
+      this.eventManager
     );
 
     this.fechaController = new FechaController(
       this.fechaService,
-      this.tramiteService
+      this.tramiteService,
+      this.eventManager
     );
 
     this.estadoController = new EstadoController(
       this.estadoService,
-      this.tramiteService
+      this.tramiteService,
+      this.eventManager
     );
 
-    // Inicializar controladores
-    await Promise.all([
-      this.tramiteController.initialize(),
-      this.documentoController.initialize(),
-      this.fechaController.initialize(),
-      this.estadoController.initialize(),
-    ]);
+    // Los controladores se inicializarán después de que se les asignen las vistas
+    console.log('✅ Controladores creados');
 
     // Registrar controladores en el mapa de módulos
     this.modules.set('tramiteController', this.tramiteController);
@@ -159,18 +156,24 @@ class TramiteApp {
     console.log('🎨 Inicializando vistas...');
 
     // Crear instancias de vistas
-    this.tramiteView = new TramiteView(this.tramiteController);
-    this.documentoView = new DocumentoView(this.documentoController);
-    this.fechaView = new FechaView(this.fechaController);
-    this.estadoView = new EstadoView(this.estadoController);
+    this.tramiteView = new TramiteView();
+    this.documentoView = new DocumentoView();
+    this.fechaView = new FechaView();
+    this.estadoView = new EstadoView();
 
     // Inicializar vistas
     await Promise.all([
       this.tramiteView.initialize(),
       this.documentoView.initialize(),
-      this.documentoView.initialize(),
+      this.fechaView.initialize(),
       this.estadoView.initialize(),
     ]);
+
+    // Actualizar los controladores con sus vistas correspondientes
+    this.tramiteController.tramiteView = this.tramiteView;
+    this.documentoController.documentoView = this.documentoView;
+    this.fechaController.fechaView = this.fechaView;
+    this.estadoController.estadoView = this.estadoView;
 
     // Registrar vistas en el mapa de módulos
     this.modules.set('tramiteView', this.tramiteView);
@@ -179,6 +182,16 @@ class TramiteApp {
     this.modules.set('estadoView', this.estadoView);
 
     console.log('✅ Vistas inicializadas');
+
+    // Ahora inicializar los controladores después de que tengan sus vistas
+    console.log('🎮 Inicializando controladores...');
+    await Promise.all([
+      this.tramiteController.initialize(),
+      this.documentoController.initialize(),
+      this.fechaController.initialize(),
+      this.estadoController.initialize(),
+    ]);
+    console.log('✅ Controladores inicializados');
   }
 
   /**

@@ -2,24 +2,40 @@
  * Controlador para manejo de trámites
  * Clase que coordina la lógica de negocio entre modelo, vista y servicio
  */
-class TramiteController {
-  constructor() {
-    this.service = new TramiteService();
-    this.view = new TramiteView();
+class TramiteController extends BaseController {
+  constructor(tramiteService, tramiteView, eventManager = null) {
+    super(eventManager);
+    this.tramiteService = tramiteService;
+    this.tramiteView = tramiteView;
     this.isEditing = false;
     this.currentTramiteId = null;
-    this.initializeEventListeners();
-    this.loadTramites();
   }
 
   /**
-   * Inicializa los event listeners
+   * Configura las dependencias del controlador
    */
-  initializeEventListeners() {
+  async setupDependencies() {
+    // Las dependencias ya están inyectadas en el constructor
+    console.log('🔧 Dependencias configuradas para TramiteController');
+  }
+
+  /**
+   * Configura los event listeners
+   */
+  setupEventListeners() {
+    console.log('🔧 Configurando event listeners para TramiteController...');
+
     // Botón crear trámite
     const btnCrearTramite = document.getElementById('btnCrearTramite');
+    console.log('🔍 Botón crear trámite encontrado:', btnCrearTramite);
     if (btnCrearTramite) {
-      btnCrearTramite.addEventListener('click', () => this.showCreateModal());
+      btnCrearTramite.addEventListener('click', () => {
+        console.log('🖱️ Clic en botón crear trámite');
+        this.showCreateModal();
+      });
+      console.log('✅ Event listener agregado al botón crear trámite');
+    } else {
+      console.error('❌ Botón crear trámite no encontrado en el DOM');
     }
 
     // Botón guardar trámite
@@ -73,18 +89,50 @@ class TramiteController {
 
     // Validación de fechas en tiempo real
     this.initializeDateValidation();
+
+    // Event listener para mostrar opciones de trámite
+    this.eventManager.on('tramite:showOpciones', data => {
+      console.log('📡 Evento tramite:showOpciones recibido:', data);
+      this.showOpciones(data.tramiteId);
+    });
+
+    // Event listener para obtener trámite por ID
+    this.eventManager.on('tramite:getById', data => {
+      console.log('📡 Evento tramite:getById recibido:', data);
+      const tramite = this.tramiteService.getById(data.tramiteId);
+      if (data.callback && typeof data.callback === 'function') {
+        data.callback(tramite);
+      }
+    });
+
+    // Event listener para guardar fechas
+    this.eventManager.on('tramite:guardarFechas', async data => {
+      console.log('📡 Evento tramite:guardarFechas recibido:', data);
+      await this.guardarFechas(data.formData);
+    });
+  }
+
+  /**
+   * Inicializa el controlador después de configurar dependencias y eventos
+   */
+  async initialize() {
+    console.log('🚀 Inicializando TramiteController...');
+    await super.initialize();
+    console.log('✅ TramiteController inicializado correctamente');
+    // Cargar trámites después de la inicialización
+    await this.loadTramites();
   }
 
   /**
    * Carga y muestra los trámites
    */
-  loadTramites() {
+  async loadTramites() {
     try {
-      const tramites = this.service.getAll();
-      this.view.renderTable(tramites);
+      const tramites = await this.tramiteService.getAll();
+      this.tramiteView.renderTable(tramites);
     } catch (error) {
       console.error('Error al cargar trámites:', error);
-      this.view.showAlert('Error al cargar los trámites', 'danger');
+      this.showError('Error al cargar los trámites');
     }
   }
 
@@ -159,17 +207,21 @@ class TramiteController {
    * Muestra el modal de crear trámite
    */
   showCreateModal() {
+    console.log('🎯 Método showCreateModal llamado');
     this.isEditing = false;
     this.currentTramiteId = null;
-    this.view.showCreateModal();
+    console.log('🔍 Llamando a tramiteView.showCreateModal()');
+    this.tramiteView.showCreateModal();
   }
 
   /**
    * Guarda un trámite (crear o actualizar)
    */
-  saveTramite() {
+  async saveTramite() {
     try {
-      const formData = this.view.getFormData();
+      console.log('💾 Iniciando guardado de trámite...');
+      const formData = this.tramiteView.getFormData();
+      console.log('📋 Datos del formulario:', formData);
 
       // Validar que el formulario esté completo
       if (!this.validateFormData(formData)) {
@@ -179,24 +231,35 @@ class TramiteController {
       let result;
       if (this.isEditing && this.currentTramiteId) {
         // Actualizar trámite existente
-        result = this.service.update(this.currentTramiteId, formData);
+        console.log('🔄 Actualizando trámite existente...');
+        result = await this.tramiteService.update(
+          this.currentTramiteId,
+          formData
+        );
       } else {
         // Crear nuevo trámite
+        console.log('🆕 Creando nuevo trámite...');
         const tramite = Tramite.fromFormData(formData);
-        result = this.service.create(tramite);
+        console.log('📝 Trámite creado desde formulario:', tramite);
+        result = await this.tramiteService.create(tramite);
       }
 
+      console.log('📊 Resultado de la operación:', result);
+
       if (result.success) {
-        this.view.showAlert(result.message, 'success');
-        this.view.hideCreateModal();
-        this.loadTramites();
+        this.tramiteView.showAlert(result.message, 'success');
+        this.tramiteView.hideCreateModal();
+        await this.loadTramites();
         this.resetForm();
       } else {
-        this.view.showAlert(result.errors.join(', '), 'danger');
+        this.tramiteView.showAlert(result.errors.join(', '), 'danger');
       }
     } catch (error) {
-      console.error('Error al guardar trámite:', error);
-      this.view.showAlert('Error interno al guardar el trámite', 'danger');
+      console.error('❌ Error al guardar trámite:', error);
+      this.tramiteView.showAlert(
+        'Error interno al guardar el trámite',
+        'danger'
+      );
     }
   }
 
@@ -219,7 +282,7 @@ class TramiteController {
     );
 
     if (missingFields.length > 0) {
-      this.view.showAlert(
+      this.tramiteView.showAlert(
         'Por favor complete todos los campos requeridos',
         'warning'
       );
@@ -235,7 +298,7 @@ class TramiteController {
   resetForm() {
     this.isEditing = false;
     this.currentTramiteId = null;
-    this.view.clearForm();
+    this.tramiteView.clearForm();
   }
 
   /**
@@ -244,7 +307,7 @@ class TramiteController {
    */
   showOpciones(tramiteId) {
     this.currentTramiteId = tramiteId;
-    this.view.showOpcionesModal(tramiteId);
+    this.tramiteView.showOpcionesModal(tramiteId);
   }
 
   /**
@@ -253,21 +316,24 @@ class TramiteController {
   gestionarFechas() {
     try {
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
-      this.view.hideOpcionesModal();
-      this.view.showGestionarFechasModal(tramite);
+      this.tramiteView.hideOpcionesModal();
+      this.tramiteView.showGestionarFechasModal(tramite);
     } catch (error) {
       console.error('Error al abrir modal de fechas:', error);
-      this.view.showAlert('Error al abrir el modal de fechas', 'danger');
+      this.tramiteView.showAlert('Error al abrir el modal de fechas', 'danger');
     }
   }
 
@@ -275,16 +341,22 @@ class TramiteController {
    * Guarda las fechas de un trámite
    * @param {Object} fechas - Objeto con las fechas
    */
-  guardarFechas(fechas) {
+  async guardarFechas(fechas) {
     try {
+      console.log('💾 Iniciando guardado de fechas:', fechas);
+      console.log('🆔 ID del trámite actual:', this.currentTramiteId);
+
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
@@ -313,18 +385,23 @@ class TramiteController {
         historialFechas: tramite.historialFechas,
       };
 
-      const result = this.service.update(this.currentTramiteId, updateData);
+      console.log('📊 Datos a actualizar:', updateData);
+      const result = await this.tramiteService.update(
+        this.currentTramiteId,
+        updateData
+      );
+      console.log('📊 Resultado de la actualización:', result);
 
       if (result.success) {
-        this.view.showAlert('Fechas guardadas exitosamente', 'success');
-        this.view.refreshHistorialFechas(tramite);
-        this.loadTramites(); // Actualizar la tabla principal
+        this.tramiteView.showAlert('Fechas guardadas exitosamente', 'success');
+        this.tramiteView.refreshHistorialFechas(tramite);
+        await this.loadTramites(); // Actualizar la tabla principal
       } else {
-        this.view.showAlert(result.errors.join(', '), 'danger');
+        this.tramiteView.showAlert(result.errors.join(', '), 'danger');
       }
     } catch (error) {
       console.error('Error al guardar fechas:', error);
-      this.view.showAlert('Error al guardar las fechas', 'danger');
+      this.tramiteView.showAlert('Error al guardar las fechas', 'danger');
     }
   }
 
@@ -348,13 +425,13 @@ class TramiteController {
       !fechaInicioSubsanacion ||
       !fechaFinSubsanacion
     ) {
-      this.view.showAlert('Todas las fechas son requeridas', 'warning');
+      this.tramiteView.showAlert('Todas las fechas son requeridas', 'warning');
       return false;
     }
 
     // Validar que la fecha de finalización sea posterior a la de inicio
     if (new Date(fechaInicio) >= new Date(fechaFinalizacion)) {
-      this.view.showAlert(
+      this.tramiteView.showAlert(
         'La fecha de finalización debe ser posterior a la fecha de inicio',
         'warning'
       );
@@ -363,7 +440,7 @@ class TramiteController {
 
     // Validar que la fecha fin de subsanación sea posterior a la fecha inicio de subsanación
     if (new Date(fechaInicioSubsanacion) >= new Date(fechaFinSubsanacion)) {
-      this.view.showAlert(
+      this.tramiteView.showAlert(
         'La fecha fin de subsanación debe ser posterior a la fecha inicio de subsanación',
         'warning'
       );
@@ -372,7 +449,7 @@ class TramiteController {
 
     // Validar que la fecha de inicio de subsanación sea posterior a la fecha de finalización del trámite
     if (new Date(fechaInicioSubsanacion) <= new Date(fechaFinalizacion)) {
-      this.view.showAlert(
+      this.tramiteView.showAlert(
         'La fecha de inicio de subsanación debe ser posterior a la fecha de finalización del trámite',
         'warning'
       );
@@ -388,28 +465,31 @@ class TramiteController {
   deleteTramite() {
     try {
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
-      this.view.hideOpcionesModal();
+      this.tramiteView.hideOpcionesModal();
 
-      this.view.showConfirmModal(
+      this.tramiteView.showConfirmModal(
         'Eliminar Trámite',
         `¿Está seguro de que desea eliminar el trámite "${tramite.nombre}"? Esta acción no se puede deshacer.`,
         () => {
-          const result = this.service.delete(this.currentTramiteId);
+          const result = this.tramiteService.delete(this.currentTramiteId);
           if (result.success) {
-            this.view.showAlert(result.message, 'success');
+            this.tramiteView.showAlert(result.message, 'success');
             this.loadTramites();
           } else {
-            this.view.showAlert(result.errors.join(', '), 'danger');
+            this.tramiteView.showAlert(result.errors.join(', '), 'danger');
           }
         },
         'Eliminar',
@@ -417,7 +497,7 @@ class TramiteController {
       );
     } catch (error) {
       console.error('Error al eliminar trámite:', error);
-      this.view.showAlert('Error al eliminar el trámite', 'danger');
+      this.tramiteView.showAlert('Error al eliminar el trámite', 'danger');
     }
   }
 
@@ -427,21 +507,27 @@ class TramiteController {
   anadirDocumentos() {
     try {
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
-      this.view.hideOpcionesModal();
-      this.view.showDocumentosModal(tramite);
+      this.tramiteView.hideOpcionesModal();
+      this.tramiteView.showDocumentosModal(tramite);
     } catch (error) {
       console.error('Error al abrir modal de documentos:', error);
-      this.view.showAlert('Error al abrir el modal de documentos', 'danger');
+      this.tramiteView.showAlert(
+        'Error al abrir el modal de documentos',
+        'danger'
+      );
     }
   }
 
@@ -451,21 +537,24 @@ class TramiteController {
   verDocumentos() {
     try {
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
-      this.view.hideOpcionesModal();
-      this.view.showVerDocumentosModal(tramite);
+      this.tramiteView.hideOpcionesModal();
+      this.tramiteView.showVerDocumentosModal(tramite);
     } catch (error) {
       console.error('Error al abrir modal de ver documentos:', error);
-      this.view.showAlert(
+      this.tramiteView.showAlert(
         'Error al abrir el modal de ver documentos',
         'danger'
       );
@@ -478,13 +567,16 @@ class TramiteController {
   activarInactivarTramite() {
     try {
       if (!this.currentTramiteId) {
-        this.view.showAlert('No se ha seleccionado ningún trámite', 'warning');
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
         return;
       }
 
-      const tramite = this.service.getById(this.currentTramiteId);
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
       if (!tramite) {
-        this.view.showAlert('Trámite no encontrado', 'danger');
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
         return;
       }
 
@@ -492,7 +584,7 @@ class TramiteController {
 
       // Solo permitir activar/inactivar manualmente si el estado automático es 'activo' o 'inactivo'
       if (estadoActual !== 'activo' && estadoActual !== 'inactivo') {
-        this.view.showAlert(
+        this.tramiteView.showAlert(
           `No se puede cambiar manualmente el estado. El trámite está actualmente en estado: ${estadoActual}`,
           'warning'
         );
@@ -502,23 +594,50 @@ class TramiteController {
       const nuevoEstado = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
       const accion = nuevoEstado === 'activo' ? 'activar' : 'inactivar';
 
-      this.view.hideOpcionesModal();
+      this.tramiteView.hideOpcionesModal();
 
-      this.view.showConfirmModal(
+      this.tramiteView.showConfirmModal(
         `${accion.charAt(0).toUpperCase() + accion.slice(1)} Trámite`,
         `¿Está seguro de que desea ${accion} manualmente el trámite "${tramite.nombre}"?`,
-        () => {
-          const result = this.service.update(this.currentTramiteId, {
-            estado: nuevoEstado,
-          });
-          if (result.success) {
-            this.view.showAlert(
-              `Trámite ${accion}do manualmente exitosamente`,
-              'success'
+        async () => {
+          try {
+            // Obtener el trámite actualizado
+            const tramite = this.tramiteService.getById(this.currentTramiteId);
+            if (tramite) {
+              // Cambiar el estado usando el método del modelo
+              tramite.setEstado(
+                nuevoEstado,
+                'Usuario',
+                `${accion} manual del trámite`
+              );
+            }
+
+            const result = await this.tramiteService.update(
+              this.currentTramiteId,
+              {
+                estado: nuevoEstado,
+              }
             );
-            this.loadTramites();
-          } else {
-            this.view.showAlert(result.errors.join(', '), 'danger');
+            if (result.success) {
+              // Construir el mensaje correctamente
+              const mensaje =
+                nuevoEstado === 'activo'
+                  ? 'Trámite activado manualmente exitosamente'
+                  : 'Trámite inactivado manualmente exitosamente';
+
+              this.tramiteView.showAlert(mensaje, 'success');
+              await this.loadTramites();
+              // Actualizar la vista del modal de opciones
+              this.tramiteView.refreshOpcionesModal(this.currentTramiteId);
+            } else {
+              this.tramiteView.showAlert(result.errors.join(', '), 'danger');
+            }
+          } catch (error) {
+            console.error('Error al cambiar estado del trámite:', error);
+            this.tramiteView.showAlert(
+              'Error interno al cambiar el estado del trámite',
+              'danger'
+            );
           }
         },
         accion.charAt(0).toUpperCase() + accion.slice(1),
@@ -526,7 +645,10 @@ class TramiteController {
       );
     } catch (error) {
       console.error('Error al cambiar estado del trámite:', error);
-      this.view.showAlert('Error al cambiar el estado del trámite', 'danger');
+      this.tramiteView.showAlert(
+        'Error al cambiar el estado del trámite',
+        'danger'
+      );
     }
   }
 
@@ -536,16 +658,16 @@ class TramiteController {
    */
   generateSampleData(count = 5) {
     try {
-      const result = this.service.generateSampleData(count);
+      const result = this.tramiteService.generateSampleData(count);
       if (result.success) {
-        this.view.showAlert(result.message, 'success');
+        this.tramiteView.showAlert(result.message, 'success');
         this.loadTramites();
       } else {
-        this.view.showAlert(result.errors.join(', '), 'danger');
+        this.tramiteView.showAlert(result.errors.join(', '), 'danger');
       }
     } catch (error) {
       console.error('Error al generar datos de ejemplo:', error);
-      this.view.showAlert('Error al generar datos de ejemplo', 'danger');
+      this.tramiteView.showAlert('Error al generar datos de ejemplo', 'danger');
     }
   }
 
@@ -554,7 +676,7 @@ class TramiteController {
    */
   exportTramites() {
     try {
-      const jsonData = this.service.exportToJSON();
+      const jsonData = this.tramiteService.exportToJSON();
       if (jsonData) {
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -566,13 +688,16 @@ class TramiteController {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        this.view.showAlert('Trámites exportados exitosamente', 'success');
+        this.tramiteView.showAlert(
+          'Trámites exportados exitosamente',
+          'success'
+        );
       } else {
-        this.view.showAlert('Error al exportar los trámites', 'danger');
+        this.tramiteView.showAlert('Error al exportar los trámites', 'danger');
       }
     } catch (error) {
       console.error('Error al exportar trámites:', error);
-      this.view.showAlert('Error al exportar los trámites', 'danger');
+      this.tramiteView.showAlert('Error al exportar los trámites', 'danger');
     }
   }
 
@@ -585,19 +710,19 @@ class TramiteController {
       const reader = new FileReader();
       reader.onload = e => {
         const jsonData = e.target.result;
-        const result = this.service.importFromJSON(jsonData);
+        const result = this.tramiteService.importFromJSON(jsonData);
 
         if (result.success) {
-          this.view.showAlert(result.message, 'success');
+          this.tramiteView.showAlert(result.message, 'success');
           this.loadTramites();
         } else {
-          this.view.showAlert(result.errors.join(', '), 'danger');
+          this.tramiteView.showAlert(result.errors.join(', '), 'danger');
         }
       };
       reader.readAsText(file);
     } catch (error) {
       console.error('Error al importar trámites:', error);
-      this.view.showAlert('Error al importar los trámites', 'danger');
+      this.tramiteView.showAlert('Error al importar los trámites', 'danger');
     }
   }
 
@@ -605,16 +730,16 @@ class TramiteController {
    * Limpia todos los datos
    */
   clearAllData() {
-    this.view.showConfirmModal(
+    this.tramiteView.showConfirmModal(
       'Limpiar Todos los Datos',
       '¿Está seguro de que desea eliminar todos los trámites? Esta acción no se puede deshacer.',
       () => {
-        const result = this.service.clearAll();
+        const result = this.tramiteService.clearAll();
         if (result.success) {
-          this.view.showAlert(result.message, 'success');
+          this.tramiteView.showAlert(result.message, 'success');
           this.loadTramites();
         } else {
-          this.view.showAlert(result.errors.join(', '), 'danger');
+          this.tramiteView.showAlert(result.errors.join(', '), 'danger');
         }
       },
       'Limpiar Todo',
@@ -627,7 +752,7 @@ class TramiteController {
    * @returns {Object} Estadísticas
    */
   getStats() {
-    return this.service.getStats();
+    return this.tramiteService.getStats();
   }
 
   /**

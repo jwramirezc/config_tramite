@@ -297,4 +297,64 @@ class Tramite {
       (a, b) => new Date(b.fechaCambio) - new Date(a.fechaCambio)
     );
   }
+
+  /**
+   * Establece el estado del trámite manualmente
+   * @param {string} nuevoEstado - Nuevo estado ('activo' o 'inactivo')
+   * @param {string} usuario - Usuario que realiza el cambio
+   * @param {string} motivo - Motivo del cambio de estado
+   */
+  setEstado(
+    nuevoEstado,
+    usuario = 'Usuario',
+    motivo = 'Cambio manual de estado'
+  ) {
+    if (nuevoEstado !== 'activo' && nuevoEstado !== 'inactivo') {
+      throw new Error('El estado solo puede ser "activo" o "inactivo"');
+    }
+
+    const estadoAnterior = this.estado;
+    this.estado = nuevoEstado;
+    this.fechaModificacion = new Date().toISOString();
+
+    // Registrar el cambio en el historial de fechas
+    const registroEstado = {
+      id: `estado_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      tipo: 'cambio_estado',
+      estadoAnterior: estadoAnterior,
+      estadoNuevo: nuevoEstado,
+      fechaCambio: new Date().toISOString(),
+      usuario: usuario,
+      motivo: motivo,
+    };
+
+    // Si no existe historialEstados, crearlo
+    if (!this.historialEstados) {
+      this.historialEstados = [];
+    }
+
+    this.historialEstados.push(registroEstado);
+
+    console.log(
+      `🔄 Estado del trámite cambiado de "${estadoAnterior}" a "${nuevoEstado}"`
+    );
+    console.log('👤 Usuario:', usuario);
+    console.log('📝 Motivo:', motivo);
+    console.log('📊 Historial de estados:', this.historialEstados);
+
+    return registroEstado;
+  }
+
+  /**
+   * Obtiene el historial de cambios de estado ordenado por fecha
+   * @returns {Array} Array de cambios de estado ordenados
+   */
+  getHistorialEstadosOrdenado() {
+    if (!this.historialEstados) {
+      return [];
+    }
+    return [...this.historialEstados].sort(
+      (a, b) => new Date(b.fechaCambio) - new Date(a.fechaCambio)
+    );
+  }
 }

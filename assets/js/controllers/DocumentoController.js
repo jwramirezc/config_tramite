@@ -3,10 +3,11 @@
  * Extiende BaseController para funcionalidades específicas de documentos
  */
 class DocumentoController extends BaseController {
-  constructor(documentoService, tramiteService) {
-    super();
+  constructor(documentoService, tramiteService, eventManager = null) {
+    super(eventManager);
     this.documentoService = documentoService;
     this.tramiteService = tramiteService;
+    this.documentoView = null; // Se asignará después
     this.currentTramiteId = null;
     this.currentDocumento = null;
   }
@@ -47,6 +48,13 @@ class DocumentoController extends BaseController {
     this.eventManager.on('documento:list', data => {
       this.listDocumentos(data);
     });
+  }
+
+  /**
+   * Inicializa el controlador
+   */
+  async initialize() {
+    console.log('🎮 DocumentoController inicializado');
   }
 
   /**

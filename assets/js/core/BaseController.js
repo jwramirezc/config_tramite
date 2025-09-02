@@ -3,8 +3,8 @@
  * Proporciona métodos comunes y gestión de dependencias
  */
 class BaseController {
-  constructor() {
-    this.eventManager = new EventManager();
+  constructor(eventManager = null) {
+    this.eventManager = eventManager || new EventManager();
     this.storageManager = new StorageManager();
     this.isInitialized = false;
   }

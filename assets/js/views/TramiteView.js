@@ -2,13 +2,35 @@
  * Vista para manejo de la interfaz de usuario de trámites
  * Clase que maneja la presentación y renderizado de datos
  */
-class TramiteView {
+class TramiteView extends BaseView {
   constructor() {
+    super();
     this.container = document.getElementById('tablaTramitesContainer');
     this.modalCrear = document.getElementById('modalCrearTramite');
     this.modalOpciones = document.getElementById('modalOpcionesTramite');
     this.form = document.getElementById('formCrearTramite');
     this.currentTramiteId = null;
+  }
+
+  /**
+   * Configura los elementos comunes de la vista
+   */
+  setupCommonElements() {
+    // Verificar que los elementos del DOM existan
+    if (!this.container || !this.modalCrear || !this.form) {
+      console.warn(
+        '⚠️ Algunos elementos del DOM no están disponibles para TramiteView'
+      );
+    }
+  }
+
+  /**
+   * Inicializa la vista
+   */
+  async initialize() {
+    await super.initialize();
+    this.setupCommonElements();
+    console.log('🎨 TramiteView inicializada');
   }
 
   /**
@@ -49,6 +71,7 @@ class TramiteView {
 
     this.container.innerHTML = tableHTML;
     this.initializeTooltips();
+    this.setupOpcionesButtons();
   }
 
   /**
@@ -94,10 +117,8 @@ class TramiteView {
                     </span>
                 </td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-action" 
-                            onclick="tramiteController.showOpciones('${
-                              tramite.id
-                            }')"
+                    <button class="btn btn-sm btn-action btn-opciones" 
+                            data-tramite-id="${tramite.id}"
                             data-bs-toggle="tooltip" 
                             title="Más opciones">
                         <i class="fas fa-ellipsis-v"></i>
@@ -186,9 +207,13 @@ class TramiteView {
    * Muestra el modal de crear trámite
    */
   showCreateModal() {
+    console.log('🎨 Método showCreateModal de TramiteView llamado');
+    console.log('🔍 Modal crear encontrado:', this.modalCrear);
     this.clearForm();
     const modal = new bootstrap.Modal(this.modalCrear);
+    console.log('🔧 Modal Bootstrap creado:', modal);
     modal.show();
+    console.log('✅ Modal mostrado');
   }
 
   /**
@@ -196,12 +221,19 @@ class TramiteView {
    * @param {string} tramiteId - ID del trámite
    */
   showOpcionesModal(tramiteId) {
+    console.log('🎨 Mostrando modal de opciones para trámite:', tramiteId);
     this.currentTramiteId = tramiteId;
 
-    // Obtener el trámite para actualizar el texto del botón
-    const tramite = tramiteController.service.getById(tramiteId);
-    if (tramite) {
-      this.actualizarTextoBotonActivarInactivar(tramite);
+    // Emitir evento para obtener el trámite del controlador
+    if (window.tramiteApp && window.tramiteApp.eventManager) {
+      window.tramiteApp.eventManager.emit('tramite:getById', {
+        tramiteId,
+        callback: tramite => {
+          if (tramite) {
+            this.actualizarTextoBotonActivarInactivar(tramite);
+          }
+        },
+      });
     }
 
     const modal = new bootstrap.Modal(this.modalOpciones);
@@ -264,8 +296,11 @@ class TramiteView {
         .value,
     };
 
-    if (tramiteController) {
-      tramiteController.guardarFechas(formData);
+    // Emitir evento para guardar fechas
+    if (window.tramiteApp && window.tramiteApp.eventManager) {
+      window.tramiteApp.eventManager.emit('tramite:guardarFechas', {
+        formData,
+      });
     }
   }
 
@@ -637,6 +672,31 @@ class TramiteView {
     // Limpiar modal después de cerrar
     modal.addEventListener('hidden.bs.modal', () => {
       modal.remove();
+    });
+  }
+
+  /**
+   * Configura los botones de opciones
+   */
+  setupOpcionesButtons() {
+    const opcionesButtons = this.container.querySelectorAll('.btn-opciones');
+    opcionesButtons.forEach(button => {
+      button.addEventListener('click', e => {
+        e.preventDefault();
+        const tramiteId = button.getAttribute('data-tramite-id');
+        console.log('🖱️ Clic en botón de opciones para trámite:', tramiteId);
+
+        // Emitir evento para que el controlador lo maneje
+        if (window.tramiteApp && window.tramiteApp.eventManager) {
+          window.tramiteApp.eventManager.emit('tramite:showOpciones', {
+            tramiteId,
+          });
+        } else {
+          console.error(
+            '❌ No se puede emitir evento: tramiteApp o eventManager no disponible'
+          );
+        }
+      });
     });
   }
 
@@ -1504,16 +1564,134 @@ class TramiteView {
       // Obtener el trámite actual (podríamos almacenarlo en una variable)
       const tramiteId = this.currentTramiteId;
       if (tramiteId) {
-        const tramite = tramiteController.service.getById(tramiteId);
-        if (tramite) {
-          // Recargar la tabla
-          const documentos = this.obtenerDocumentosDelTramite(tramiteId);
-          const tablaContainer = modal.querySelector('.card-body');
-          if (tablaContainer) {
-            tablaContainer.innerHTML = this.renderTablaDocumentos(documentos);
-          }
+        // Emitir evento para obtener el trámite
+        if (window.tramiteApp && window.tramiteApp.eventManager) {
+          window.tramiteApp.eventManager.emit('tramite:getById', {
+            tramiteId,
+            callback: tramite => {
+              if (tramite) {
+                // Recargar la tabla
+                const documentos = this.obtenerDocumentosDelTramite(tramiteId);
+                const tablaContainer = modal.querySelector('.card-body');
+                if (tablaContainer) {
+                  tablaContainer.innerHTML =
+                    this.renderTablaDocumentos(documentos);
+                }
+              }
+            },
+          });
         }
       }
+    }
+  }
+
+  /**
+   * Actualiza el modal de opciones después de cambiar el estado del trámite
+   * @param {string} tramiteId - ID del trámite
+   */
+  refreshOpcionesModal(tramiteId) {
+    try {
+      console.log('🔄 Actualizando modal de opciones para trámite:', tramiteId);
+
+      // Obtener el trámite actualizado
+      if (window.tramiteApp && window.tramiteApp.eventManager) {
+        window.tramiteApp.eventManager.emit('tramite:getById', {
+          tramiteId,
+          callback: tramite => {
+            if (tramite) {
+              console.log('📊 Trámite actualizado recibido:', tramite);
+
+              // Actualizar el título del modal
+              const modalTitle = document.querySelector(
+                '#modalOpcionesTramite .modal-title'
+              );
+              if (modalTitle) {
+                modalTitle.textContent = `Opciones del Trámite: ${tramite.nombre}`;
+              }
+
+              // Actualizar el estado mostrado
+              const estadoElement = document.querySelector(
+                '#modalOpcionesTramite .estado-tramite'
+              );
+              if (estadoElement) {
+                const estado = tramite.getEstadoPorFechas();
+                estadoElement.textContent = `Estado: ${this.getEstadoText(
+                  estado
+                )}`;
+                estadoElement.className = `estado-tramite badge ${this.getEstadoBadgeClass(
+                  estado
+                )}`;
+              }
+
+              // Actualizar el botón de activar/inactivar
+              this.actualizarTextoBotonActivarInactivar(tramite);
+
+              // Actualizar las fechas mostradas
+              this.actualizarFechasEnModal(tramite);
+
+              console.log('✅ Modal de opciones actualizado');
+            } else {
+              console.error('❌ No se pudo obtener el trámite actualizado');
+            }
+          },
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error al actualizar modal de opciones:', error);
+    }
+  }
+
+  /**
+   * Actualiza las fechas mostradas en el modal de opciones
+   * @param {Tramite} tramite - Trámite con las fechas actualizadas
+   */
+  actualizarFechasEnModal(tramite) {
+    try {
+      // Actualizar fecha de inicio
+      const fechaInicioElement = document.querySelector(
+        '#modalOpcionesTramite .fecha-inicio'
+      );
+      if (fechaInicioElement) {
+        fechaInicioElement.textContent = this.getFechaDisplay(
+          tramite,
+          'fechaInicio'
+        );
+      }
+
+      // Actualizar fecha de finalización
+      const fechaFinalizacionElement = document.querySelector(
+        '#modalOpcionesTramite .fecha-finalizacion'
+      );
+      if (fechaFinalizacionElement) {
+        fechaFinalizacionElement.textContent = this.getFechaDisplay(
+          tramite,
+          'fechaFinalizacion'
+        );
+      }
+
+      // Actualizar fecha de inicio de subsanación
+      const fechaInicioSubsanacionElement = document.querySelector(
+        '#modalOpcionesTramite .fecha-inicio-subsanacion'
+      );
+      if (fechaInicioSubsanacionElement) {
+        fechaInicioSubsanacionElement.textContent = this.getFechaDisplay(
+          tramite,
+          'fechaInicioSubsanacion'
+        );
+      }
+
+      // Actualizar fecha fin de subsanación
+      const fechaFinSubsanacionElement = document.querySelector(
+        '#modalOpcionesTramite .fecha-fin-subsanacion'
+      );
+      if (fechaFinSubsanacionElement) {
+        fechaFinSubsanacionElement.textContent = this.getFechaDisplay(
+          tramite,
+          'fechaFinSubsanacion'
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error al actualizar fechas en modal:', error);
     }
   }
 }
