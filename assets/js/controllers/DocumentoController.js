@@ -28,6 +28,8 @@ class DocumentoController extends BaseController {
    * Configura los event listeners del controlador
    */
   setupEventListeners() {
+    console.log('🔧 Configurando event listeners para DocumentoController...');
+
     // Eventos específicos de documentos
     this.eventManager.on('documento:create', data => {
       this.createDocumento(data);
@@ -48,6 +50,16 @@ class DocumentoController extends BaseController {
     this.eventManager.on('documento:list', data => {
       this.listDocumentos(data);
     });
+
+    // Evento específico para crear documento desde el formulario
+    this.eventManager.on('documento:createFromForm', data => {
+      console.log(
+        '📡 Evento documento:createFromForm recibido en DocumentoController'
+      );
+      this.createDocumentoFromForm(data);
+    });
+
+    console.log('✅ Event listeners configurados para DocumentoController');
   }
 
   /**
@@ -55,6 +67,10 @@ class DocumentoController extends BaseController {
    */
   async initialize() {
     console.log('🎮 DocumentoController inicializado');
+    await this.setupDependencies();
+    this.setupEventListeners();
+    this.isInitialized = true; // Marcar como inicializado
+    console.log('✅ DocumentoController completamente inicializado');
   }
 
   /**
@@ -76,6 +92,42 @@ class DocumentoController extends BaseController {
 
       return result;
     }, 'crear documento');
+  }
+
+  /**
+   * Crea un nuevo documento desde el formulario "Crear Documento"
+   * @param {Object} data - Datos del evento con formData y callback
+   * @returns {Promise<Object>} Resultado de la operación
+   */
+  async createDocumentoFromForm(data) {
+    console.log(
+      '🎮 DocumentoController.createDocumentoFromForm llamado con datos:',
+      data
+    );
+    return await this.executeAction(async () => {
+      const { formData, callback } = data;
+      console.log('📋 FormData recibido:', formData);
+
+      const result = await this.documentoService.createDocumentoFromForm(
+        formData
+      );
+      console.log('📊 Resultado del servicio:', result);
+
+      if (result.success) {
+        this.eventManager.emit('documento:createdFromForm', result.item);
+        this.showSuccess(result.message);
+      } else {
+        this.showError(result.errors.join(', '));
+      }
+
+      // Ejecutar callback si está disponible
+      if (callback && typeof callback === 'function') {
+        console.log('🔄 Ejecutando callback');
+        callback(result);
+      }
+
+      return result;
+    }, 'crear documento desde formulario');
   }
 
   /**

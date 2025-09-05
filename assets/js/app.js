@@ -327,19 +327,20 @@ class TramiteApp {
   navigateToTramite(action, params) {
     switch (action) {
       case 'list':
-        this.tramiteView.showList();
+        // Mostrar la tabla de trámites (ya está renderizada por defecto)
+        console.log('📋 Navegando a lista de trámites');
         break;
       case 'create':
-        this.tramiteView.showCreateForm();
+        this.tramiteView.showCreateModal();
         break;
       case 'edit':
-        this.tramiteView.showEditForm(params.id);
+        this.tramiteView.showOpcionesModal(params.id);
         break;
       case 'view':
-        this.tramiteView.showDetails(params.id);
+        this.tramiteView.showOpcionesModal(params.id);
         break;
       default:
-        this.tramiteView.showList();
+        console.log('📋 Acción no reconocida, mostrando vista por defecto');
     }
   }
 

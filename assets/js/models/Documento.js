@@ -21,6 +21,15 @@ class Documento {
     this.observaciones = data.observaciones || '';
     this.version = data.version || '1.0';
     this.tags = data.tags || [];
+
+    // Nuevos campos para el formulario "Crear Documento"
+    this.nombreDocumento = data.nombreDocumento || '';
+    this.descripcionDocumento = data.descripcionDocumento || '';
+    this.tipoFormatoEsperado = data.tipoFormatoEsperado || '';
+    this.obligatoriedad = data.obligatoriedad || 'No';
+    this.requiereAprobacion = data.requiereAprobacion || 'No';
+    this.vigenciaEnDias = data.vigenciaEnDias || 0;
+    this.permitePlazosAmpliados = data.permitePlazosAmpliados || 'No';
   }
 
   /**
@@ -73,6 +82,65 @@ class Documento {
   }
 
   /**
+   * Valida los campos específicos del formulario "Crear Documento"
+   * @returns {Object} Objeto con isValid (boolean) y errors (array)
+   */
+  validateCrearDocumento() {
+    console.log('🔍 Validando documento:', this);
+    const errors = [];
+    const requiredFields = [
+      'nombreDocumento',
+      'tipoDocumental',
+      'descripcionDocumento',
+      'tipoFormatoEsperado',
+      'obligatoriedad',
+      'requiereAprobacion',
+      'vigenciaEnDias',
+      'permitePlazosAmpliados',
+    ];
+
+    requiredFields.forEach(field => {
+      if (!this[field] || this[field].toString().trim() === '') {
+        errors.push(`El campo ${this.getFieldLabel(field)} es requerido`);
+      }
+    });
+
+    // Validar que vigenciaEnDias sea un número positivo
+    if (
+      this.vigenciaEnDias &&
+      (isNaN(this.vigenciaEnDias) || this.vigenciaEnDias < 0)
+    ) {
+      errors.push('La vigencia en días debe ser un número positivo');
+    }
+
+    // Validar que obligatoriedad sea Sí o No
+    if (this.obligatoriedad && !['Sí', 'No'].includes(this.obligatoriedad)) {
+      errors.push('La obligatoriedad debe ser "Sí" o "No"');
+    }
+
+    // Validar que requiereAprobacion sea Sí o No
+    if (
+      this.requiereAprobacion &&
+      !['Sí', 'No'].includes(this.requiereAprobacion)
+    ) {
+      errors.push('¿Requiere aprobación? debe ser "Sí" o "No"');
+    }
+
+    // Validar que permitePlazosAmpliados sea Sí o No
+    if (
+      this.permitePlazosAmpliados &&
+      !['Sí', 'No'].includes(this.permitePlazosAmpliados)
+    ) {
+      errors.push('¿Permite plazos ampliados? debe ser "Sí" o "No"');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors,
+    };
+  }
+
+  /**
    * Obtiene la etiqueta legible de un campo
    * @param {string} field - Nombre del campo
    * @returns {string} Etiqueta del campo
@@ -86,6 +154,13 @@ class Documento {
       datosRequeridos: 'Datos requeridos',
       version: 'Versión',
       tags: 'Etiquetas',
+      nombreDocumento: 'Nombre del Documento',
+      descripcionDocumento: 'Descripción del Documento',
+      tipoFormatoEsperado: 'Tipo de Formato Esperado',
+      obligatoriedad: 'Obligatoriedad',
+      requiereAprobacion: '¿Requiere aprobación?',
+      vigenciaEnDias: 'Vigencia en días',
+      permitePlazosAmpliados: '¿Permite plazos ampliados?',
     };
     return labels[field] || field;
   }
@@ -109,6 +184,14 @@ class Documento {
       observaciones: this.observaciones,
       version: this.version,
       tags: this.tags,
+      // Nuevos campos para el formulario "Crear Documento"
+      nombreDocumento: this.nombreDocumento,
+      descripcionDocumento: this.descripcionDocumento,
+      tipoFormatoEsperado: this.tipoFormatoEsperado,
+      obligatoriedad: this.obligatoriedad,
+      requiereAprobacion: this.requiereAprobacion,
+      vigenciaEnDias: this.vigenciaEnDias,
+      permitePlazosAmpliados: this.permitePlazosAmpliados,
     };
   }
 
@@ -357,6 +440,27 @@ class Documento {
       datosRequeridos: formData.datosRequeridos || [],
       observaciones: formData.observaciones || '',
       tags: formData.tags || [],
+    });
+  }
+
+  /**
+   * Crea un documento desde datos del formulario "Crear Documento"
+   * @param {Object} formData - Datos del formulario
+   * @returns {Documento} Nueva instancia del documento
+   */
+  static fromCrearDocumentoFormData(formData) {
+    return new Documento({
+      nombreDocumento: formData.nombreDocumento,
+      tipoDocumental: formData.tipoDocumental,
+      descripcionDocumento: formData.descripcionDocumento,
+      tipoFormatoEsperado: formData.tipoFormatoEsperado,
+      obligatoriedad: formData.obligatoriedad,
+      requiereAprobacion: formData.requiereAprobacion,
+      vigenciaEnDias: parseInt(formData.vigenciaEnDias) || 0,
+      permitePlazosAmpliados: formData.permitePlazosAmpliados,
+      estado: 'activo',
+      version: '1.0',
+      tags: [],
     });
   }
 

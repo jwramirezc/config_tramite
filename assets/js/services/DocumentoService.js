@@ -468,4 +468,171 @@ class DocumentoService extends BaseService {
       };
     }
   }
+
+  /**
+   * Crea un documento desde el formulario "Crear Documento"
+   * @param {Object} formData - Datos del formulario
+   * @returns {Object} Resultado de la operación
+   */
+  async createDocumentoFromForm(formData) {
+    try {
+      console.log(
+        '📚 DocumentoService.createDocumentoFromForm llamado con:',
+        formData
+      );
+      this.validateInitialization();
+
+      // Crear documento desde los datos del formulario
+      const documento = Documento.fromCrearDocumentoFormData(formData);
+      console.log('📄 Documento creado:', documento);
+
+      // Validar el documento
+      const validation = documento.validateCrearDocumento();
+      if (!validation.isValid) {
+        return {
+          success: false,
+          errors: validation.errors,
+        };
+      }
+
+      // Verificar duplicados por nombre
+      const existingDocumento = this.items.find(
+        doc => doc.nombreDocumento === documento.nombreDocumento
+      );
+
+      if (existingDocumento) {
+        return {
+          success: false,
+          errors: [
+            `Ya existe un documento con el nombre "${documento.nombreDocumento}"`,
+          ],
+        };
+      }
+
+      // Agregar el documento
+      this.items.push(documento);
+      await this.saveToStorage();
+
+      return {
+        success: true,
+        item: documento,
+        message: `Documento "${documento.nombreDocumento}" creado exitosamente`,
+      };
+    } catch (error) {
+      console.error('❌ Error al crear documento desde formulario:', error);
+      return {
+        success: false,
+        errors: ['Error al crear el documento'],
+      };
+    }
+  }
+
+  /**
+   * Obtiene todos los documentos creados desde el formulario "Crear Documento"
+   * @returns {Array} Array de documentos
+   */
+  getDocumentosCreados() {
+    this.validateInitialization();
+    return this.items.filter(
+      doc => doc.nombreDocumento && doc.nombreDocumento.trim() !== ''
+    );
+  }
+
+  /**
+   * Obtiene documentos por tipo documental (para el formulario)
+   * @param {string} tipoDocumental - Tipo de documento
+   * @returns {Array} Array de documentos del tipo especificado
+   */
+  getByTipoDocumentalForm(tipoDocumental) {
+    this.validateInitialization();
+    return this.items.filter(
+      doc =>
+        doc.tipoDocumental === tipoDocumental &&
+        doc.nombreDocumento &&
+        doc.nombreDocumento.trim() !== ''
+    );
+  }
+
+  /**
+   * Obtiene todos los tipos documentales únicos (para el formulario)
+   * @returns {Array} Array de tipos documentales únicos
+   */
+  getAllTiposDocumentalesForm() {
+    this.validateInitialization();
+    const tipos = [];
+    this.items.forEach(doc => {
+      if (doc.tipoDocumental && !tipos.includes(doc.tipoDocumental)) {
+        tipos.push(doc.tipoDocumental);
+      }
+    });
+    return tipos.sort();
+  }
+
+  /**
+   * Obtiene estadísticas de documentos creados desde el formulario
+   * @returns {Object} Estadísticas de documentos
+   */
+  getStatsDocumentosCreados() {
+    this.validateInitialization();
+    const documentosCreados = this.getDocumentosCreados();
+
+    const total = documentosCreados.length;
+    const activos = documentosCreados.filter(doc => doc.isActivo()).length;
+    const inactivos = documentosCreados.filter(doc => !doc.isActivo()).length;
+
+    // Estadísticas por tipo documental
+    const tiposStats = {};
+    this.getAllTiposDocumentalesForm().forEach(tipo => {
+      tiposStats[tipo] = this.getByTipoDocumentalForm(tipo).length;
+    });
+
+    // Estadísticas por obligatoriedad
+    const obligatorios = documentosCreados.filter(
+      doc => doc.obligatoriedad === 'Sí'
+    ).length;
+    const noObligatorios = documentosCreados.filter(
+      doc => doc.obligatoriedad === 'No'
+    ).length;
+
+    // Estadísticas por aprobación
+    const requierenAprobacion = documentosCreados.filter(
+      doc => doc.requiereAprobacion === 'Sí'
+    ).length;
+    const noRequierenAprobacion = documentosCreados.filter(
+      doc => doc.requiereAprobacion === 'No'
+    ).length;
+
+    // Estadísticas por plazos ampliados
+    const permitenPlazosAmpliados = documentosCreados.filter(
+      doc => doc.permitePlazosAmpliados === 'Sí'
+    ).length;
+    const noPermitenPlazosAmpliados = documentosCreados.filter(
+      doc => doc.permitePlazosAmpliados === 'No'
+    ).length;
+
+    // Promedio de vigencia
+    const vigencias = documentosCreados
+      .map(doc => doc.vigenciaEnDias)
+      .filter(v => v > 0);
+    const promedioVigencia =
+      vigencias.length > 0
+        ? (vigencias.reduce((sum, v) => sum + v, 0) / vigencias.length).toFixed(
+            2
+          )
+        : 0;
+
+    return {
+      total,
+      activos,
+      inactivos,
+      tiposDocumentales: tiposStats,
+      obligatorios,
+      noObligatorios,
+      requierenAprobacion,
+      noRequierenAprobacion,
+      permitenPlazosAmpliados,
+      noPermitenPlazosAmpliados,
+      promedioVigencia,
+    };
+  }
 }

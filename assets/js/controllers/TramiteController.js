@@ -38,6 +38,19 @@ class TramiteController extends BaseController {
       console.error('❌ Botón crear trámite no encontrado en el DOM');
     }
 
+    // Botón crear documento
+    const btnCrearDocumento = document.getElementById('btnCrearDocumento');
+    console.log('🔍 Botón crear documento encontrado:', btnCrearDocumento);
+    if (btnCrearDocumento) {
+      btnCrearDocumento.addEventListener('click', () => {
+        console.log('🖱️ Clic en botón crear documento');
+        this.showCrearDocumentoModal();
+      });
+      console.log('✅ Event listener agregado al botón crear documento');
+    } else {
+      console.error('❌ Botón crear documento no encontrado en el DOM');
+    }
+
     // Botón guardar trámite
     const btnGuardarTramite = document.getElementById('btnGuardarTramite');
     if (btnGuardarTramite) {
@@ -212,6 +225,18 @@ class TramiteController extends BaseController {
     this.currentTramiteId = null;
     console.log('🔍 Llamando a tramiteView.showCreateModal()');
     this.tramiteView.showCreateModal();
+  }
+
+  /**
+   * Muestra el modal de crear documento
+   */
+  showCrearDocumentoModal() {
+    console.log('🎯 Método showCrearDocumentoModal llamado');
+    if (window.tramiteApp && window.tramiteApp.documentoView) {
+      window.tramiteApp.documentoView.showCrearDocumentoModal();
+    } else {
+      console.error('❌ DocumentoView no está disponible');
+    }
   }
 
   /**
