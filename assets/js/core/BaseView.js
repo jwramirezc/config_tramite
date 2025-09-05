@@ -16,7 +16,6 @@ class BaseView {
     try {
       this.setupCommonElements();
       this.isInitialized = true;
-      console.log(`✅ ${this.constructor.name} inicializada correctamente`);
     } catch (error) {
       console.error(`❌ Error al inicializar ${this.constructor.name}:`, error);
       throw error;

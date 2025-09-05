@@ -17,7 +17,6 @@ class BaseController {
       await this.setupDependencies();
       this.setupEventListeners();
       this.isInitialized = true;
-      console.log(`✅ ${this.constructor.name} inicializado correctamente`);
     } catch (error) {
       console.error(`❌ Error al inicializar ${this.constructor.name}:`, error);
       throw error;

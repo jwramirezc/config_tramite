@@ -43,9 +43,7 @@ class FechaController extends BaseController {
   /**
    * Inicializa el controlador
    */
-  async initialize() {
-    console.log('🎮 FechaController inicializado');
-  }
+  async initialize() {}
 
   /**
    * Crea una nueva fecha

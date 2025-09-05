@@ -31,7 +31,6 @@ class EstadoView extends BaseView {
   async initialize() {
     await super.initialize();
     this.setupCommonElements();
-    console.log('🎨 EstadoView inicializada');
   }
 
   /**

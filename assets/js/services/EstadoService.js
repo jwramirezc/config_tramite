@@ -12,7 +12,6 @@ class EstadoService extends BaseService {
    */
   async initialize() {
     await super.initialize();
-    console.log('🔄 EstadoService inicializado');
   }
 
   /**

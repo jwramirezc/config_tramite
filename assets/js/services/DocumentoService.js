@@ -12,7 +12,6 @@ class DocumentoService extends BaseService {
    */
   async initialize() {
     await super.initialize();
-    console.log('📚 DocumentoService inicializado');
   }
 
   /**
@@ -476,15 +475,10 @@ class DocumentoService extends BaseService {
    */
   async createDocumentoFromForm(formData) {
     try {
-      console.log(
-        '📚 DocumentoService.createDocumentoFromForm llamado con:',
-        formData
-      );
       this.validateInitialization();
 
       // Crear documento desde los datos del formulario
       const documento = Documento.fromCrearDocumentoFormData(formData);
-      console.log('📄 Documento creado:', documento);
 
       // Validar el documento
       const validation = documento.validateCrearDocumento();

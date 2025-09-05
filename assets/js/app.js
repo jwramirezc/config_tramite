@@ -33,8 +33,6 @@ class TramiteApp {
    */
   async initialize() {
     try {
-      console.log('🚀 Inicializando aplicación de gestión de trámites...');
-
       // Inicializar gestores core
       await this.initializeCoreManagers();
 
@@ -54,7 +52,6 @@ class TramiteApp {
       this.setupNavigation();
 
       this.isInitialized = true;
-      console.log('✅ Aplicación inicializada correctamente');
 
       // Emitir evento de inicialización completa
       this.eventManager.emit('app:initialized');
@@ -69,20 +66,14 @@ class TramiteApp {
    * Inicializa los gestores core
    */
   async initializeCoreManagers() {
-    console.log('🔧 Inicializando gestores core...');
-
     // Configurar cifrado para datos sensibles (opcional)
     // this.storageManager.enableEncryption('clave-secreta-2024');
-
-    console.log('✅ Gestores core inicializados');
   }
 
   /**
    * Inicializa los servicios
    */
   async initializeServices() {
-    console.log('🔌 Inicializando servicios...');
-
     // Crear instancias de servicios
     this.tramiteService = new TramiteService();
     this.documentoService = new DocumentoService();
@@ -102,16 +93,12 @@ class TramiteApp {
     this.modules.set('documentoService', this.documentoService);
     this.modules.set('fechaService', this.fechaService);
     this.modules.set('estadoService', this.estadoService);
-
-    console.log('✅ Servicios inicializados');
   }
 
   /**
    * Inicializa los controladores
    */
   async initializeControllers() {
-    console.log('🎮 Inicializando controladores...');
-
     // Crear instancias de controladores
     this.tramiteController = new TramiteController(
       this.tramiteService,
@@ -138,23 +125,18 @@ class TramiteApp {
     );
 
     // Los controladores se inicializarán después de que se les asignen las vistas
-    console.log('✅ Controladores creados');
 
     // Registrar controladores en el mapa de módulos
     this.modules.set('tramiteController', this.tramiteController);
     this.modules.set('documentoController', this.documentoController);
     this.modules.set('fechaController', this.fechaController);
     this.modules.set('estadoController', this.estadoController);
-
-    console.log('✅ Controladores inicializados');
   }
 
   /**
    * Inicializa las vistas
    */
   async initializeViews() {
-    console.log('🎨 Inicializando vistas...');
-
     // Crear instancias de vistas
     this.tramiteView = new TramiteView();
     this.documentoView = new DocumentoView();
@@ -181,25 +163,19 @@ class TramiteApp {
     this.modules.set('fechaView', this.fechaView);
     this.modules.set('estadoView', this.estadoView);
 
-    console.log('✅ Vistas inicializadas');
-
     // Ahora inicializar los controladores después de que tengan sus vistas
-    console.log('🎮 Inicializando controladores...');
     await Promise.all([
       this.tramiteController.initialize(),
       this.documentoController.initialize(),
       this.fechaController.initialize(),
       this.estadoController.initialize(),
     ]);
-    console.log('✅ Controladores inicializados');
   }
 
   /**
    * Configura eventos globales
    */
   setupGlobalEvents() {
-    console.log('📡 Configurando eventos globales...');
-
     // Eventos de navegación
     this.eventManager.on('navigation:change', data => {
       this.handleNavigationChange(data);
@@ -248,16 +224,12 @@ class TramiteApp {
     this.eventManager.on('estado:changed', data => {
       this.handleEstadoChanged(data);
     });
-
-    console.log('✅ Eventos globales configurados');
   }
 
   /**
    * Configura la navegación
    */
   setupNavigation() {
-    console.log('🧭 Configurando navegación...');
-
     // Configurar navegación por hash
     window.addEventListener('hashchange', () => {
       this.handleHashChange();
@@ -265,8 +237,6 @@ class TramiteApp {
 
     // Configurar navegación inicial
     this.handleHashChange();
-
-    console.log('✅ Navegación configurada');
   }
 
   /**
@@ -328,7 +298,6 @@ class TramiteApp {
     switch (action) {
       case 'list':
         // Mostrar la tabla de trámites (ya está renderizada por defecto)
-        console.log('📋 Navegando a lista de trámites');
         break;
       case 'create':
         this.tramiteView.showCreateModal();
@@ -340,7 +309,6 @@ class TramiteApp {
         this.tramiteView.showOpcionesModal(params.id);
         break;
       default:
-        console.log('📋 Acción no reconocida, mostrando vista por defecto');
     }
   }
 
@@ -411,7 +379,6 @@ class TramiteApp {
    * Maneja eventos de trámites creados
    */
   handleTramiteCreated(data) {
-    console.log('📋 Trámite creado:', data);
     this.showSuccess('Trámite creado exitosamente');
 
     // Actualizar vista si es necesario
@@ -424,7 +391,6 @@ class TramiteApp {
    * Maneja eventos de trámites actualizados
    */
   handleTramiteUpdated(data) {
-    console.log('📋 Trámite actualizado:', data);
     this.showSuccess('Trámite actualizado exitosamente');
 
     // Actualizar vista si es necesario
@@ -437,7 +403,6 @@ class TramiteApp {
    * Maneja eventos de trámites eliminados
    */
   handleTramiteDeleted(data) {
-    console.log('📋 Trámite eliminado:', data);
     this.showSuccess('Trámite eliminado exitosamente');
 
     // Actualizar vista si es necesario
@@ -450,7 +415,6 @@ class TramiteApp {
    * Maneja eventos de documentos creados
    */
   handleDocumentoCreated(data) {
-    console.log('📚 Documento creado:', data);
     this.showSuccess('Documento creado exitosamente');
   }
 
@@ -458,7 +422,6 @@ class TramiteApp {
    * Maneja eventos de documentos actualizados
    */
   handleDocumentoUpdated(data) {
-    console.log('📚 Documento actualizado:', data);
     this.showSuccess('Documento actualizado exitosamente');
   }
 
@@ -466,7 +429,6 @@ class TramiteApp {
    * Maneja eventos de documentos eliminados
    */
   handleDocumentoDeleted(data) {
-    console.log('📚 Documento eliminado:', data);
     this.showSuccess('Documento eliminado exitosamente');
   }
 
@@ -474,7 +436,6 @@ class TramiteApp {
    * Maneja eventos de fechas creadas
    */
   handleFechaCreated(data) {
-    console.log('📅 Fecha creada:', data);
     this.showSuccess('Fechas configuradas exitosamente');
   }
 
@@ -482,7 +443,6 @@ class TramiteApp {
    * Maneja eventos de fechas actualizadas
    */
   handleFechaUpdated(data) {
-    console.log('📅 Fecha actualizada:', data);
     this.showSuccess('Fechas actualizadas exitosamente');
   }
 
@@ -490,7 +450,6 @@ class TramiteApp {
    * Maneja eventos de fechas eliminadas
    */
   handleFechaDeleted(data) {
-    console.log('📅 Fecha eliminada:', data);
     this.showSuccess('Fechas eliminadas exitosamente');
   }
 
@@ -498,7 +457,6 @@ class TramiteApp {
    * Maneja eventos de cambios de estado
    */
   handleEstadoChanged(data) {
-    console.log('🔄 Estado cambiado:', data);
     this.showSuccess(`Estado cambiado a: ${data.nuevoEstado}`);
   }
 
@@ -540,7 +498,6 @@ class TramiteApp {
     if (this.tramiteView) {
       this.tramiteView.showAlert(message, 'success');
     } else {
-      console.log('✅ ' + message);
     }
   }
 
@@ -601,8 +558,6 @@ class TramiteApp {
    * Limpia todos los recursos de la aplicación
    */
   cleanup() {
-    console.log('🧹 Limpiando recursos de la aplicación...');
-
     // Limpiar controladores
     if (this.tramiteController) this.tramiteController.cleanup();
     if (this.documentoController) this.documentoController.cleanup();
@@ -627,8 +582,6 @@ class TramiteApp {
 
     this.isInitialized = false;
     this.modules.clear();
-
-    console.log('✅ Recursos de la aplicación limpiados');
   }
 }
 

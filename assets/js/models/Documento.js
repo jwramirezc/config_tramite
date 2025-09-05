@@ -86,7 +86,6 @@ class Documento {
    * @returns {Object} Objeto con isValid (boolean) y errors (array)
    */
   validateCrearDocumento() {
-    console.log('🔍 Validando documento:', this);
     const errors = [];
     const requiredFields = [
       'nombreDocumento',

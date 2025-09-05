@@ -12,7 +12,6 @@ class TramiteService extends BaseService {
    */
   async initialize() {
     await super.initialize();
-    console.log('📋 TramiteService inicializado');
   }
 
   /**

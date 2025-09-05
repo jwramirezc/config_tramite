@@ -30,7 +30,6 @@ class TramiteView extends BaseView {
   async initialize() {
     await super.initialize();
     this.setupCommonElements();
-    console.log('🎨 TramiteView inicializada');
   }
 
   /**
@@ -207,13 +206,9 @@ class TramiteView extends BaseView {
    * Muestra el modal de crear trámite
    */
   showCreateModal() {
-    console.log('🎨 Método showCreateModal de TramiteView llamado');
-    console.log('🔍 Modal crear encontrado:', this.modalCrear);
     this.clearForm();
     const modal = new bootstrap.Modal(this.modalCrear);
-    console.log('🔧 Modal Bootstrap creado:', modal);
     modal.show();
-    console.log('✅ Modal mostrado');
   }
 
   /**
@@ -221,7 +216,6 @@ class TramiteView extends BaseView {
    * @param {string} tramiteId - ID del trámite
    */
   showOpcionesModal(tramiteId) {
-    console.log('🎨 Mostrando modal de opciones para trámite:', tramiteId);
     this.currentTramiteId = tramiteId;
 
     // Emitir evento para obtener el trámite del controlador
@@ -684,7 +678,6 @@ class TramiteView extends BaseView {
       button.addEventListener('click', e => {
         e.preventDefault();
         const tramiteId = button.getAttribute('data-tramite-id');
-        console.log('🖱️ Clic en botón de opciones para trámite:', tramiteId);
 
         // Emitir evento para que el controlador lo maneje
         if (window.tramiteApp && window.tramiteApp.eventManager) {
@@ -1025,8 +1018,6 @@ class TramiteView extends BaseView {
         'documentos_tramites',
         JSON.stringify(documentosExistentes)
       );
-
-      console.log('Documento guardado en localStorage:', documento);
     } catch (error) {
       console.error('Error al guardar documento en localStorage:', error);
       this.showAlert('Error al guardar el documento', 'danger');
@@ -1591,16 +1582,12 @@ class TramiteView extends BaseView {
    */
   refreshOpcionesModal(tramiteId) {
     try {
-      console.log('🔄 Actualizando modal de opciones para trámite:', tramiteId);
-
       // Obtener el trámite actualizado
       if (window.tramiteApp && window.tramiteApp.eventManager) {
         window.tramiteApp.eventManager.emit('tramite:getById', {
           tramiteId,
           callback: tramite => {
             if (tramite) {
-              console.log('📊 Trámite actualizado recibido:', tramite);
-
               // Actualizar el título del modal
               const modalTitle = document.querySelector(
                 '#modalOpcionesTramite .modal-title'
@@ -1628,8 +1615,6 @@ class TramiteView extends BaseView {
 
               // Actualizar las fechas mostradas
               this.actualizarFechasEnModal(tramite);
-
-              console.log('✅ Modal de opciones actualizado');
             } else {
               console.error('❌ No se pudo obtener el trámite actualizado');
             }

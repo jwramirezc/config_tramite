@@ -17,7 +17,6 @@ class BaseService {
     try {
       await this.loadFromStorage();
       this.isInitialized = true;
-      console.log(`✅ ${this.constructor.name} inicializado correctamente`);
     } catch (error) {
       console.error(`❌ Error al inicializar ${this.constructor.name}:`, error);
       throw error;
@@ -30,16 +29,11 @@ class BaseService {
   async loadFromStorage() {
     try {
       const data = localStorage.getItem(this.storageKey);
-      console.log(
-        `🔍 Intentando cargar datos para ${this.storageKey}:`,
-        data ? 'datos encontrados' : 'sin datos'
-      );
 
       if (data) {
         let parsedData;
         try {
           parsedData = JSON.parse(data);
-          console.log(`📊 Datos parseados exitosamente:`, parsedData);
         } catch (parseError) {
           console.error(
             `❌ Error al parsear JSON para ${this.storageKey}:`,
@@ -60,20 +54,13 @@ class BaseService {
           return;
         }
 
-        console.log(`📊 Procesando ${parsedData.length} items...`);
-
         this.items = [];
         for (let i = 0; i < parsedData.length; i++) {
           const item = parsedData[i];
           try {
-            console.log(
-              `🔧 Procesando item ${i + 1}/${parsedData.length}:`,
-              item
-            );
             const entity = this.createEntityFromData(item);
             if (entity) {
               this.items.push(entity);
-              console.log(`✅ Item ${i + 1} procesado exitosamente`);
             } else {
               console.warn(`⚠️ Item ${i + 1} retornó null, omitiendo`);
             }
@@ -86,14 +73,8 @@ class BaseService {
             // Continuar con el siguiente item en lugar de fallar completamente
           }
         }
-
-        console.log(
-          `📥 ${this.entityName}s cargados desde almacenamiento:`,
-          this.items.length
-        );
       } else {
         this.items = [];
-        console.log(`📝 No hay ${this.entityName}s en almacenamiento`);
       }
     } catch (error) {
       console.error(
@@ -117,10 +98,6 @@ class BaseService {
         this.prepareDataForStorage(item)
       );
       localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
-      console.log(
-        `💾 ${this.entityName}s guardados en almacenamiento:`,
-        this.items.length
-      );
     } catch (error) {
       console.error(
         `❌ Error al guardar ${this.entityName}s en almacenamiento:`,

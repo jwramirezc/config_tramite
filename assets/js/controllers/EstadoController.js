@@ -43,9 +43,7 @@ class EstadoController extends BaseController {
   /**
    * Inicializa el controlador
    */
-  async initialize() {
-    console.log('🎮 EstadoController inicializado');
-  }
+  async initialize() {}
 
   /**
    * Crea un nuevo estado

@@ -16,37 +16,28 @@ class TramiteController extends BaseController {
    */
   async setupDependencies() {
     // Las dependencias ya están inyectadas en el constructor
-    console.log('🔧 Dependencias configuradas para TramiteController');
   }
 
   /**
    * Configura los event listeners
    */
   setupEventListeners() {
-    console.log('🔧 Configurando event listeners para TramiteController...');
-
     // Botón crear trámite
     const btnCrearTramite = document.getElementById('btnCrearTramite');
-    console.log('🔍 Botón crear trámite encontrado:', btnCrearTramite);
     if (btnCrearTramite) {
       btnCrearTramite.addEventListener('click', () => {
-        console.log('🖱️ Clic en botón crear trámite');
         this.showCreateModal();
       });
-      console.log('✅ Event listener agregado al botón crear trámite');
     } else {
       console.error('❌ Botón crear trámite no encontrado en el DOM');
     }
 
     // Botón crear documento
     const btnCrearDocumento = document.getElementById('btnCrearDocumento');
-    console.log('🔍 Botón crear documento encontrado:', btnCrearDocumento);
     if (btnCrearDocumento) {
       btnCrearDocumento.addEventListener('click', () => {
-        console.log('🖱️ Clic en botón crear documento');
         this.showCrearDocumentoModal();
       });
-      console.log('✅ Event listener agregado al botón crear documento');
     } else {
       console.error('❌ Botón crear documento no encontrado en el DOM');
     }
@@ -105,13 +96,11 @@ class TramiteController extends BaseController {
 
     // Event listener para mostrar opciones de trámite
     this.eventManager.on('tramite:showOpciones', data => {
-      console.log('📡 Evento tramite:showOpciones recibido:', data);
       this.showOpciones(data.tramiteId);
     });
 
     // Event listener para obtener trámite por ID
     this.eventManager.on('tramite:getById', data => {
-      console.log('📡 Evento tramite:getById recibido:', data);
       const tramite = this.tramiteService.getById(data.tramiteId);
       if (data.callback && typeof data.callback === 'function') {
         data.callback(tramite);
@@ -120,7 +109,6 @@ class TramiteController extends BaseController {
 
     // Event listener para guardar fechas
     this.eventManager.on('tramite:guardarFechas', async data => {
-      console.log('📡 Evento tramite:guardarFechas recibido:', data);
       await this.guardarFechas(data.formData);
     });
   }
@@ -129,9 +117,7 @@ class TramiteController extends BaseController {
    * Inicializa el controlador después de configurar dependencias y eventos
    */
   async initialize() {
-    console.log('🚀 Inicializando TramiteController...');
     await super.initialize();
-    console.log('✅ TramiteController inicializado correctamente');
     // Cargar trámites después de la inicialización
     await this.loadTramites();
   }
@@ -220,10 +206,8 @@ class TramiteController extends BaseController {
    * Muestra el modal de crear trámite
    */
   showCreateModal() {
-    console.log('🎯 Método showCreateModal llamado');
     this.isEditing = false;
     this.currentTramiteId = null;
-    console.log('🔍 Llamando a tramiteView.showCreateModal()');
     this.tramiteView.showCreateModal();
   }
 
@@ -231,7 +215,6 @@ class TramiteController extends BaseController {
    * Muestra el modal de crear documento
    */
   showCrearDocumentoModal() {
-    console.log('🎯 Método showCrearDocumentoModal llamado');
     if (window.tramiteApp && window.tramiteApp.documentoView) {
       window.tramiteApp.documentoView.showCrearDocumentoModal();
     } else {
@@ -244,9 +227,7 @@ class TramiteController extends BaseController {
    */
   async saveTramite() {
     try {
-      console.log('💾 Iniciando guardado de trámite...');
       const formData = this.tramiteView.getFormData();
-      console.log('📋 Datos del formulario:', formData);
 
       // Validar que el formulario esté completo
       if (!this.validateFormData(formData)) {
@@ -256,20 +237,15 @@ class TramiteController extends BaseController {
       let result;
       if (this.isEditing && this.currentTramiteId) {
         // Actualizar trámite existente
-        console.log('🔄 Actualizando trámite existente...');
         result = await this.tramiteService.update(
           this.currentTramiteId,
           formData
         );
       } else {
         // Crear nuevo trámite
-        console.log('🆕 Creando nuevo trámite...');
         const tramite = Tramite.fromFormData(formData);
-        console.log('📝 Trámite creado desde formulario:', tramite);
         result = await this.tramiteService.create(tramite);
       }
-
-      console.log('📊 Resultado de la operación:', result);
 
       if (result.success) {
         this.tramiteView.showAlert(result.message, 'success');
@@ -368,9 +344,6 @@ class TramiteController extends BaseController {
    */
   async guardarFechas(fechas) {
     try {
-      console.log('💾 Iniciando guardado de fechas:', fechas);
-      console.log('🆔 ID del trámite actual:', this.currentTramiteId);
-
       if (!this.currentTramiteId) {
         this.tramiteView.showAlert(
           'No se ha seleccionado ningún trámite',
@@ -394,7 +367,6 @@ class TramiteController extends BaseController {
       const usuario = 'Usuario'; // En un sistema real, esto vendría del contexto de autenticación
       tramite.agregarFechas(fechas, usuario);
 
-      console.log('🔄 Trámite después de agregar fechas:', tramite);
       console.log(
         '📊 Historial de fechas del trámite:',
         tramite.historialFechas
@@ -410,12 +382,10 @@ class TramiteController extends BaseController {
         historialFechas: tramite.historialFechas,
       };
 
-      console.log('📊 Datos a actualizar:', updateData);
       const result = await this.tramiteService.update(
         this.currentTramiteId,
         updateData
       );
-      console.log('📊 Resultado de la actualización:', result);
 
       if (result.success) {
         this.tramiteView.showAlert('Fechas guardadas exitosamente', 'success');

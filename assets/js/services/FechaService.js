@@ -12,7 +12,6 @@ class FechaService extends BaseService {
    */
   async initialize() {
     await super.initialize();
-    console.log('📅 FechaService inicializado');
   }
 
   /**

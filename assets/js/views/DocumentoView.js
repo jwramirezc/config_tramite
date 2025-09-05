@@ -31,7 +31,6 @@ class DocumentoView extends BaseView {
   async initialize() {
     await super.initialize();
     this.setupCommonElements();
-    console.log('🎨 DocumentoView inicializada');
   }
 
   /**
@@ -341,11 +340,9 @@ class DocumentoView extends BaseView {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="fas fa-times me-1"></i>
                 Cancelar
               </button>
               <button type="button" class="btn btn-primary" id="btnGuardarDocumento">
-                <i class="fas fa-save me-1"></i>
                 Guardar Documento
               </button>
             </div>

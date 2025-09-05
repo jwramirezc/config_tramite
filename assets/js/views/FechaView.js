@@ -31,7 +31,6 @@ class FechaView extends BaseView {
   async initialize() {
     await super.initialize();
     this.setupCommonElements();
-    console.log('🎨 FechaView inicializada');
   }
 
   /**
