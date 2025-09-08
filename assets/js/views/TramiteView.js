@@ -753,36 +753,37 @@ class TramiteView extends BaseView {
                   </div>
                 </div>
 
-                <!-- Adicionar Documento -->
-                <div class="mb-3">
-                  <label for="selectDocumento" class="form-label">
-                    <i class="fas fa-file-plus me-1"></i>
-                    Adicionar Documento
-                  </label>
-                  <div class="input-group">
-                    <select class="form-select" id="selectDocumento">
-                      <option value="">Seleccione un documento para agregar</option>
-                      <!-- Las opciones se cargarán dinámicamente -->
-                  </select>
-                    <button type="button" class="btn btn-outline-primary" id="btnAgregarDocumento">
-                      <i class="fas fa-plus me-1"></i>
-                      Agregar
-                    </button>
-                </div>
-                  <div class="form-text">Seleccione un documento creado previamente para vincularlo a este trámite</div>
-                </div>
-
-                <!-- Tabla de documentos seleccionados -->
+                <!-- Tabla unificada de documentos del trámite -->
                 <div class="mb-4">
                   <div class="card">
-                    <div class="card-header bg-light">
+                    <div class="card-header bg-primary text-white">
                       <h6 class="mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        Documentos Seleccionados para Vincular
+                        <i class="fas fa-file-alt me-2"></i>
+                        Documentos del Trámite
                       </h6>
                     </div>
                     <div class="card-body">
-                      <div id="documentosSeleccionadosContainer">
+                      <!-- Selector para agregar documentos -->
+                      <div class="mb-3">
+                        <label for="selectDocumento" class="form-label">
+                          <i class="fas fa-file-plus me-1"></i>
+                          Agregar Documento
+                        </label>
+                        <div class="input-group">
+                          <select class="form-select" id="selectDocumento">
+                            <option value="">Seleccione un documento para agregar</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                          </select>
+                          <button type="button" class="btn btn-outline-primary" id="btnAgregarDocumento">
+                        <i class="fas fa-plus me-1"></i>
+                            Agregar
+                      </button>
+                    </div>
+                        <div class="form-text">Seleccione un documento creado previamente para vincularlo a este trámite</div>
+                      </div>
+                      
+                      <!-- Tabla unificada -->
+                      <div id="documentosUnificadosContainer">
                         <!-- La tabla se generará dinámicamente -->
                       </div>
                     </div>
@@ -794,9 +795,9 @@ class TramiteView extends BaseView {
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 Cancelar
               </button>
-              <button type="button" class="btn btn-primary" id="btnGuardarDocumentos">
-                <i class="fas fa-save me-1"></i>
-                Vincular Documentos
+              <button type="button" class="btn btn-primary" id="btnCerrarDocumentos">
+                <i class="fas fa-check me-1"></i>
+                Cerrar
               </button>
             </div>
           </div>
@@ -833,10 +834,8 @@ class TramiteView extends BaseView {
    */
   setupDocumentosModalEvents(tramite) {
     const btnAgregarDocumento = document.getElementById('btnAgregarDocumento');
-    const btnGuardarDocumentos = document.getElementById(
-      'btnGuardarDocumentos'
-    );
     const selectDocumento = document.getElementById('selectDocumento');
+    const btnCerrarDocumentos = document.getElementById('btnCerrarDocumentos');
 
     // Cargar documentos disponibles en el select
     this.cargarDocumentosDisponibles(selectDocumento, tramite.id);
@@ -848,15 +847,121 @@ class TramiteView extends BaseView {
       });
     }
 
-    // Evento para guardar vinculaciones
-    if (btnGuardarDocumentos) {
-      btnGuardarDocumentos.addEventListener('click', () => {
-        this.guardarVinculacionesDocumentos(tramite);
+    // Evento para cerrar y guardar documentos pendientes
+    if (btnCerrarDocumentos) {
+      btnCerrarDocumentos.addEventListener('click', () => {
+        this.cerrarYGuardarDocumentos(tramite);
       });
     }
 
-    // Inicializar tabla de documentos seleccionados
-    this.renderDocumentosSeleccionados(tramite.id);
+    // Cargar tabla unificada de documentos
+    this.cargarDocumentosUnificados(tramite.id);
+  }
+
+  /**
+   * Carga los documentos vinculados al trámite en la tabla correspondiente
+   * @param {string} tramiteId - ID del trámite
+   */
+  cargarDocumentosVinculados(tramiteId) {
+    try {
+      // Obtener documentos vinculados con información completa
+      const documentosVinculados =
+        this.obtenerDocumentosVinculadosCompletos(tramiteId);
+
+      // Obtener el contenedor de la tabla
+      const container = document.getElementById(
+        'documentosVinculadosContainer'
+      );
+      if (!container) return;
+
+      // Renderizar la tabla
+      container.innerHTML =
+        this.renderTablaDocumentosVinculados(documentosVinculados);
+    } catch (error) {
+      console.error('Error al cargar documentos vinculados:', error);
+    }
+  }
+
+  /**
+   * Cierra el modal y guarda automáticamente los documentos pendientes
+   * @param {Tramite} tramite - Trámite asociado
+   */
+  cerrarYGuardarDocumentos(tramite) {
+    try {
+      // Obtener documentos temporales (pendientes)
+      const temporalKey = `documentos_temporal_${tramite.id}`;
+      const temporal = localStorage.getItem(temporalKey);
+      const documentosTemporales = temporal ? JSON.parse(temporal) : [];
+
+      if (documentosTemporales.length > 0) {
+        // Obtener vinculaciones existentes
+        const vinculacionesExistentes = this.obtenerDocumentosVinculados(
+          tramite.id
+        );
+
+        // Crear nuevas vinculaciones para documentos temporales
+        const nuevasVinculaciones = documentosTemporales.map(documento => ({
+          id: this.generateId(),
+          tramiteId: tramite.id,
+          documentoId: documento.id,
+          fechaVinculacion: new Date().toISOString(),
+        }));
+
+        // Combinar vinculaciones existentes con las nuevas
+        const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
+        const vinculacionesActualizadas = [
+          ...todasLasVinculaciones,
+          ...nuevasVinculaciones,
+        ];
+
+        // Guardar en localStorage
+        localStorage.setItem(
+          'tramite_documentos_vinculaciones',
+          JSON.stringify(vinculacionesActualizadas)
+        );
+
+        // Limpiar documentos temporales
+        localStorage.removeItem(temporalKey);
+
+        this.showAlert(
+          `${documentosTemporales.length} documento(s) vinculado(s) exitosamente al trámite`,
+          'success'
+        );
+      }
+
+      // Cerrar el modal
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById('documentosModal')
+      );
+      if (modal) {
+        modal.hide();
+      }
+    } catch (error) {
+      console.error('Error al cerrar y guardar documentos:', error);
+      this.showAlert('Error al guardar los documentos pendientes', 'danger');
+    }
+  }
+
+  /**
+   * Carga la tabla unificada de documentos del trámite
+   * @param {string} tramiteId - ID del trámite
+   */
+  cargarDocumentosUnificados(tramiteId) {
+    try {
+      // Obtener el contenedor de la tabla unificada
+      const container = document.getElementById(
+        'documentosUnificadosContainer'
+      );
+      if (!container) {
+        return;
+      }
+
+      // Renderizar la tabla unificada
+      const html = this.renderTablaDocumentosUnificada(tramiteId);
+      container.innerHTML = html;
+    } catch (error) {
+      console.error('Error al cargar documentos unificados:', error);
+    }
   }
 
   /**
@@ -965,8 +1070,8 @@ class TramiteView extends BaseView {
     // Limpiar el select
     selectDocumento.value = '';
 
-    // Recargar la tabla de documentos seleccionados
-    this.renderDocumentosSeleccionados(tramite.id);
+    // Recargar la tabla unificada
+    this.cargarDocumentosUnificados(tramite.id);
 
     // Recargar opciones disponibles
     this.cargarDocumentosDisponibles(selectDocumento, tramite.id);
@@ -1080,17 +1185,17 @@ class TramiteView extends BaseView {
         <td class="text-center">
           <strong>${this.escapeHtml(documento.nombreDocumento)}</strong>
         </td>
-        <td class="text-center">
-          <span class="badge bg-primary">${this.escapeHtml(
-            documento.tipoDocumental
-          )}</span>
-        </td>
-        <td class="text-center">
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.tipoDocumental
+            )}</span>
+          </td>
+          <td class="text-center">
           <small class="text-muted">${this.escapeHtml(
             documento.descripcionDocumento || 'Sin descripción'
           )}</small>
-        </td>
-        <td class="text-center">
+          </td>
+          <td class="text-center">
           <span class="badge bg-info">${this.escapeHtml(
             documento.tipoFormatoEsperado || 'N/A'
           )}</span>
@@ -1107,13 +1212,13 @@ class TramiteView extends BaseView {
                   onclick="tramiteView.removerDocumentoTemporal('${
                     documento.id
                   }', '${tramiteId}')"
-                  data-bs-toggle="tooltip" 
+                    data-bs-toggle="tooltip" 
                   title="Remover documento">
               <i class="fas fa-trash"></i>
             </button>
-        </td>
-      </tr>
-    `;
+          </td>
+        </tr>
+      `;
   }
 
   /**
@@ -1136,8 +1241,8 @@ class TramiteView extends BaseView {
       // Guardar en localStorage
       localStorage.setItem(temporalKey, JSON.stringify(documentosTemporales));
 
-      // Recargar la tabla
-      this.renderDocumentosSeleccionados(tramiteId);
+      // Recargar la tabla unificada
+      this.cargarDocumentosUnificados(tramiteId);
 
       // Recargar opciones disponibles
       const selectDocumento = document.getElementById('selectDocumento');
@@ -1220,6 +1325,9 @@ class TramiteView extends BaseView {
         'success'
       );
 
+      // Recargar la tabla unificada
+      this.cargarDocumentosUnificados(tramite.id);
+
       // Cerrar el modal
       const modal = bootstrap.Modal.getInstance(
         document.getElementById('documentosModal')
@@ -1250,211 +1358,11 @@ class TramiteView extends BaseView {
   }
 
   /**
-   * Formatea una fecha para mostrar
-   * @param {string} fecha - Fecha en formato ISO
-   * @returns {string} Fecha formateada
-   */
-  formatDate(fecha) {
-    if (!fecha) return '<span class="text-muted">Sin fecha</span>';
-    const date = new Date(fecha);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  /**
-   * Muestra un modal para ver los documentos del trámite
-   * @param {Tramite} tramite - Trámite del que se mostrarán los documentos
-   */
-  showVerDocumentosModal(tramite) {
-    // Almacenar el ID del trámite actual para operaciones posteriores
-    this.currentTramiteId = tramite.id;
-
-    // Obtener documentos vinculados al trámite
-    const documentos = this.obtenerDocumentosVinculadosDelTramite(tramite.id);
-
-    const modalHTML = `
-      <div class="modal fade" id="verDocumentosModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">
-                <i class="fas fa-eye me-2"></i>
-                Documentos del Trámite - ${this.escapeHtml(tramite.nombre)}
-              </h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <!-- Información del trámite -->
-              <div class="mb-4">
-                <div class="card">
-                  <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                      <i class="fas fa-info-circle me-2"></i>
-                      Información del Trámite
-                    </h6>
-                  </div>
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
-                          tramite.nombre
-                        )}</p>
-                        <p class="mb-0"><strong>Periodo:</strong> ${tramite.getPeriodoCompleto()}</p>
-                      </div>
-                      <div class="col-md-6">
-                        <p class="mb-2"><strong>Sede:</strong> ${this.escapeHtml(
-                          tramite.sede
-                        )}</p>
-                        <p class="mb-0"><strong>Jornada:</strong> ${this.escapeHtml(
-                          tramite.jornada
-                        )}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tabla de documentos -->
-              <div class="card">
-                <div class="card-header bg-light">
-                  <h6 class="mb-0">
-                    <i class="fas fa-table me-2"></i>
-                    Documentos Registrados
-                  </h6>
-                </div>
-                <div class="card-body">
-                  ${this.renderTablaDocumentos(documentos)}
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Remover modal anterior si existe
-    const existingModal = document.getElementById('verDocumentosModal');
-    if (existingModal) {
-      existingModal.remove();
-    }
-
-    // Agregar nuevo modal
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-    // Mostrar modal
-    const modal = document.getElementById('verDocumentosModal');
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
-
-    // Limpiar modal después de cerrar
-    modal.addEventListener('hidden.bs.modal', () => {
-      modal.remove();
-    });
-  }
-
-  /**
-   * Renderiza la tabla de documentos vinculados
-   * @param {Array} documentos - Array de documentos vinculados
-   * @returns {string} HTML de la tabla
-   */
-  renderTablaDocumentos(documentos) {
-    if (!documentos || documentos.length === 0) {
-      return `
-        <div class="text-center py-4">
-          <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-          <h6 class="text-muted">No hay documentos vinculados a este trámite</h6>
-          <p class="text-muted">Los documentos aparecerán aquí una vez que sean vinculados desde "Añadir Documentos".</p>
-        </div>
-      `;
-    }
-
-    let tableHTML = `
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th class="text-center">Nombre</th>
-              <th class="text-center">Tipo Documental</th>
-              <th class="text-center">Descripción</th>
-              <th class="text-center">Formato</th>
-              <th class="text-center">Obligatorio</th>
-              <th class="text-center">Fecha Vinculación</th>
-              <th class="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    documentos.forEach(documento => {
-      tableHTML += `
-        <tr>
-          <td class="text-center">
-            <strong>${this.escapeHtml(documento.nombreDocumento)}</strong>
-          </td>
-          <td class="text-center">
-            <span class="badge bg-primary">${this.escapeHtml(
-              documento.tipoDocumental
-            )}</span>
-          </td>
-          <td class="text-center">
-            <small class="text-muted">${this.escapeHtml(
-              documento.descripcionDocumento || 'Sin descripción'
-            )}</small>
-          </td>
-          <td class="text-center">
-            <span class="badge bg-info">${this.escapeHtml(
-              documento.tipoFormatoEsperado || 'N/A'
-            )}</span>
-          </td>
-          <td class="text-center">
-            <span class="badge ${
-              documento.obligatoriedad === 'Sí' ? 'bg-warning' : 'bg-secondary'
-            }">
-              ${this.escapeHtml(documento.obligatoriedad || 'No')}
-            </span>
-          </td>
-          <td class="text-center">${this.formatDate(
-            documento.fechaVinculacion
-          )}</td>
-          <td class="text-center">
-            <button class="btn btn-sm btn-outline-danger" 
-                    onclick="tramiteView.desvincularDocumento('${
-                      documento.vinculacionId
-                    }', '${documento.id}')"
-                    data-bs-toggle="tooltip" 
-                    title="Desvincular documento">
-              <i class="fas fa-unlink"></i>
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-    tableHTML += `
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    return tableHTML;
-  }
-
-  /**
-   * Obtiene los documentos vinculados a un trámite específico
+   * Obtiene los documentos vinculados a un trámite específico con información completa
    * @param {string} tramiteId - ID del trámite
    * @returns {Array} Array de documentos vinculados al trámite
    */
-  obtenerDocumentosVinculadosDelTramite(tramiteId) {
+  obtenerDocumentosVinculadosCompletos(tramiteId) {
     try {
       // Obtener vinculaciones del trámite
       const vinculaciones = this.obtenerDocumentosVinculados(tramiteId);
@@ -1491,6 +1399,222 @@ class TramiteView extends BaseView {
   }
 
   /**
+   * Renderiza la tabla unificada de documentos del trámite
+   * @param {string} tramiteId - ID del trámite
+   * @returns {string} HTML de la tabla unificada
+   */
+  renderTablaDocumentosUnificada(tramiteId) {
+    try {
+      // Obtener documentos vinculados
+      const documentosVinculados =
+        this.obtenerDocumentosVinculadosCompletos(tramiteId);
+
+      // Obtener documentos temporales
+      const temporalKey = `documentos_temporal_${tramiteId}`;
+      const temporal = localStorage.getItem(temporalKey);
+      const documentosTemporales = temporal ? JSON.parse(temporal) : [];
+
+      // Combinar todos los documentos
+      const todosLosDocumentos = [
+        ...documentosVinculados.map(doc => ({ ...doc, esVinculado: true })),
+        ...documentosTemporales.map(doc => ({ ...doc, esVinculado: false })),
+      ];
+
+      if (todosLosDocumentos.length === 0) {
+        return `
+          <div class="text-center py-4">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h6 class="text-muted">No hay documentos en este trámite</h6>
+            <p class="text-muted">Use el selector de arriba para agregar documentos al trámite.</p>
+              </div>
+        `;
+      }
+
+      let tableHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="text-center">Nombre</th>
+                <th class="text-center">Tipo Documental</th>
+                <th class="text-center">Descripción</th>
+                <th class="text-center">Formato</th>
+                <th class="text-center">Obligatorio</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Fecha</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      todosLosDocumentos.forEach(documento => {
+        const esVinculado = documento.esVinculado;
+        const estadoBadge = esVinculado
+          ? '<span class="badge bg-success">Vinculado</span>'
+          : '<span class="badge bg-warning">Pendiente</span>';
+
+        const fecha = esVinculado
+          ? this.formatDate(documento.fechaVinculacion)
+          : '<span class="text-muted">-</span>';
+
+        const acciones = esVinculado
+          ? `<button class="btn btn-sm btn-outline-danger" 
+                     onclick="tramiteView.desvincularDocumentoDirecto('${documento.vinculacionId}', '${documento.id}', '${tramiteId}')"
+                     data-bs-toggle="tooltip" 
+                     title="Desvincular documento">
+                <i class="fas fa-unlink"></i>
+              </button>`
+          : `<button class="btn btn-sm btn-outline-danger" 
+                     onclick="tramiteView.removerDocumentoTemporal('${documento.id}', '${tramiteId}')"
+                     data-bs-toggle="tooltip" 
+                     title="Remover de la lista">
+                <i class="fas fa-trash"></i>
+              </button>`;
+
+        tableHTML += `
+          <tr>
+            <td class="text-center">
+              <strong>${this.escapeHtml(documento.nombreDocumento)}</strong>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-primary">${this.escapeHtml(
+                documento.tipoDocumental
+              )}</span>
+            </td>
+            <td class="text-center">
+              <small class="text-muted">${this.escapeHtml(
+                documento.descripcionDocumento || 'Sin descripción'
+              )}</small>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-info">${this.escapeHtml(
+                documento.tipoFormatoEsperado || 'N/A'
+              )}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge ${
+                documento.obligatoriedad === 'Sí'
+                  ? 'bg-warning'
+                  : 'bg-secondary'
+              }">
+                ${this.escapeHtml(documento.obligatoriedad || 'No')}
+              </span>
+            </td>
+            <td class="text-center">${estadoBadge}</td>
+            <td class="text-center">${fecha}</td>
+            <td class="text-center">${acciones}</td>
+          </tr>
+        `;
+      });
+
+      tableHTML += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      return tableHTML;
+    } catch (error) {
+      console.error('Error al renderizar tabla unificada:', error);
+      return '<div class="alert alert-danger">Error al cargar los documentos</div>';
+    }
+  }
+
+  /**
+   * Renderiza la tabla de documentos vinculados al trámite
+   * @param {Array} documentos - Array de documentos vinculados
+   * @returns {string} HTML de la tabla
+   */
+  renderTablaDocumentosVinculados(documentos) {
+    if (!documentos || documentos.length === 0) {
+      return `
+        <div class="text-center py-4">
+          <i class="fas fa-link fa-3x text-muted mb-3"></i>
+          <h6 class="text-muted">No hay documentos vinculados a este trámite</h6>
+          <p class="text-muted">Los documentos aparecerán aquí una vez que sean vinculados usando el selector de abajo.</p>
+        </div>
+      `;
+    }
+
+    let tableHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-center">Nombre</th>
+              <th class="text-center">Tipo Documental</th>
+              <th class="text-center">Descripción</th>
+              <th class="text-center">Formato</th>
+              <th class="text-center">Obligatorio</th>
+              <th class="text-center">Fecha Vinculación</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    documentos.forEach(documento => {
+      tableHTML += `
+        <tr>
+          <td class="text-center">
+            <strong>${this.escapeHtml(documento.nombreDocumento)}</strong>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.tipoDocumental
+            )}</span>
+          </td>
+          <td class="text-center">
+            <small class="text-muted">${this.escapeHtml(
+              documento.descripcionDocumento || 'Sin descripción'
+            )}</small>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-info">${this.escapeHtml(
+              documento.tipoFormatoEsperado || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${
+              documento.obligatoriedad === 'Sí' ? 'bg-warning' : 'bg-secondary'
+            }">
+              ${this.escapeHtml(documento.obligatoriedad || 'No')}
+            </span>
+          </td>
+          <td class="text-center">${this.formatDate(
+            documento.fechaVinculacion
+          )}</td>
+        </tr>
+      `;
+    });
+
+    tableHTML += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    return tableHTML;
+  }
+
+  /**
+   * Formatea una fecha para mostrar
+   * @param {string} fecha - Fecha en formato ISO
+   * @returns {string} Fecha formateada
+   */
+  formatDate(fecha) {
+    if (!fecha) return '<span class="text-muted">Sin fecha</span>';
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  /**
    * Edita un documento
    * @param {string} documentoId - ID del documento
    */
@@ -1500,63 +1624,49 @@ class TramiteView extends BaseView {
   }
 
   /**
-   * Desvincula un documento del trámite
+   * Desvincula un documento directamente desde la tabla unificada
    * @param {string} vinculacionId - ID de la vinculación
    * @param {string} documentoId - ID del documento
+   * @param {string} tramiteId - ID del trámite
    */
-  desvincularDocumento(vinculacionId, documentoId) {
-    this.showConfirmModal(
-      'Desvincular Documento',
-      '¿Está seguro de que desea desvincular este documento del trámite?',
-      () => {
-        try {
-          // Obtener todas las vinculaciones
-          const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
+  desvincularDocumentoDirecto(vinculacionId, documentoId, tramiteId) {
+    try {
+      // Obtener todas las vinculaciones
+      const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
 
-          // Filtrar la vinculación a eliminar
-          const vinculacionesFiltradas = todasLasVinculaciones.filter(
-            v => v.id !== vinculacionId
-          );
+      // Filtrar la vinculación a eliminar
+      const vinculacionesFiltradas = todasLasVinculaciones.filter(
+        v => v.id !== vinculacionId
+      );
 
-          // Guardar en localStorage
-          localStorage.setItem(
-            'tramite_documentos_vinculaciones',
-            JSON.stringify(vinculacionesFiltradas)
-          );
+      // Guardar en localStorage
+      localStorage.setItem(
+        'tramite_documentos_vinculaciones',
+        JSON.stringify(vinculacionesFiltradas)
+      );
 
-          this.showAlert('Documento desvinculado exitosamente', 'success');
+      this.showAlert('Documento desvinculado exitosamente', 'success');
 
-          // Recargar la tabla de documentos
-          this.recargarTablaDocumentos();
-        } catch (error) {
-          console.error('Error al desvincular documento:', error);
-          this.showAlert('Error al desvincular el documento', 'danger');
-        }
-      },
-      'Desvincular',
-      'Cancelar'
-    );
+      // Recargar la tabla unificada
+      this.cargarDocumentosUnificados(tramiteId);
+
+      // Recargar opciones del select
+      const selectDocumento = document.getElementById('selectDocumento');
+      if (selectDocumento) {
+        this.cargarDocumentosDisponibles(selectDocumento, tramiteId);
+      }
+    } catch (error) {
+      console.error('Error al desvincular documento:', error);
+      this.showAlert('Error al desvincular el documento', 'danger');
+    }
   }
 
   /**
-   * Recarga la tabla de documentos después de una operación
+   * Genera un ID único
+   * @returns {string} ID único
    */
-  recargarTablaDocumentos() {
-    // Obtener el modal actual
-    const modal = document.getElementById('verDocumentosModal');
-    if (modal && modal.classList.contains('show')) {
-      // Obtener el trámite actual
-      const tramiteId = this.currentTramiteId;
-      if (tramiteId) {
-        // Recargar la tabla con documentos vinculados
-        const documentos =
-          this.obtenerDocumentosVinculadosDelTramite(tramiteId);
-        const tablaContainer = modal.querySelector('.card-body');
-        if (tablaContainer) {
-          tablaContainer.innerHTML = this.renderTablaDocumentos(documentos);
-        }
-      }
-    }
+  generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
   /**
