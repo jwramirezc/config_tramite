@@ -163,6 +163,10 @@ class TramiteApp {
     this.modules.set('fechaView', this.fechaView);
     this.modules.set('estadoView', this.estadoView);
 
+    // Exponer vistas globalmente para acceso desde HTML
+    window.tramiteView = this.tramiteView;
+    window.documentoView = this.documentoView;
+
     // Ahora inicializar los controladores después de que tengan sus vistas
     await Promise.all([
       this.tramiteController.initialize(),
@@ -587,6 +591,10 @@ class TramiteApp {
 
 // Crear instancia global de la aplicación
 window.tramiteApp = new TramiteApp();
+
+// Exponer vistas globalmente para acceso desde HTML
+window.tramiteView = null;
+window.documentoView = null;
 
 // Inicializar la aplicación cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', async () => {

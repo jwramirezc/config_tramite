@@ -778,7 +778,7 @@ class TramiteView extends BaseView {
                     <div class="card-header bg-light">
                       <h6 class="mb-0">
                         <i class="fas fa-list me-2"></i>
-                        Documentos Vinculados al Trámite
+                        Documentos Seleccionados para Vincular
                       </h6>
                     </div>
                     <div class="card-body">
@@ -1145,7 +1145,10 @@ class TramiteView extends BaseView {
         this.cargarDocumentosDisponibles(selectDocumento, tramiteId);
       }
 
-      this.showAlert('Documento removido de la lista', 'info');
+      this.showAlert(
+        'Documento removido de la lista de selección exitosamente. Puede continuar agregando más documentos.',
+        'success'
+      );
     } catch (error) {
       console.error('Error al remover documento temporal:', error);
       this.showAlert('Error al remover el documento', 'danger');
