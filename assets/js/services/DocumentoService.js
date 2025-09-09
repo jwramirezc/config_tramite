@@ -471,9 +471,10 @@ class DocumentoService extends BaseService {
   /**
    * Crea un documento desde el formulario "Crear Documento"
    * @param {Object} formData - Datos del formulario
+   * @param {Array} camposDocumento - Campos personalizados del documento
    * @returns {Object} Resultado de la operación
    */
-  async createDocumentoFromForm(formData) {
+  async createDocumentoFromForm(formData, camposDocumento = []) {
     try {
       this.validateInitialization();
 
@@ -507,6 +508,11 @@ class DocumentoService extends BaseService {
       this.items.push(documento);
       await this.saveToStorage();
 
+      // Guardar campos del documento si existen
+      if (camposDocumento && camposDocumento.length > 0) {
+        await this.guardarCamposDocumento(documento.id, camposDocumento);
+      }
+
       return {
         success: true,
         item: documento,
@@ -517,6 +523,51 @@ class DocumentoService extends BaseService {
       return {
         success: false,
         errors: ['Error al crear el documento'],
+      };
+    }
+  }
+
+  /**
+   * Guarda los campos personalizados de un documento
+   * @param {string} documentoId - ID del documento
+   * @param {Array} camposDocumento - Array de campos del documento
+   * @returns {Promise<Object>} Resultado de la operación
+   */
+  async guardarCamposDocumento(documentoId, camposDocumento) {
+    try {
+      // Obtener o crear el servicio de campos de documentos
+      if (!window.campoDocumentoService) {
+        window.campoDocumentoService = new CampoDocumentoService();
+        await window.campoDocumentoService.initialize();
+      }
+
+      // Guardar cada campo
+      for (const campoData of camposDocumento) {
+        const campoFormData = {
+          nombreCampo: campoData.nombreCampo,
+          tipoCampo: campoData.tipoCampo,
+          obligatorio: campoData.obligatorio,
+        };
+
+        const result = await window.campoDocumentoService.createCampoFromForm(
+          campoFormData,
+          documentoId
+        );
+
+        if (!result.success) {
+          console.error('Error al guardar campo:', result.errors);
+        }
+      }
+
+      return {
+        success: true,
+        message: `${camposDocumento.length} campo(s) guardado(s) exitosamente`,
+      };
+    } catch (error) {
+      console.error('❌ Error al guardar campos del documento:', error);
+      return {
+        success: false,
+        errors: ['Error al guardar los campos del documento'],
       };
     }
   }

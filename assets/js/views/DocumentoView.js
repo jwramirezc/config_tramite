@@ -362,6 +362,81 @@ class DocumentoView extends BaseView {
                     </div>
                   </div>
                 </div>
+
+                <!-- Campos del Documento -->
+                <div class="mb-4">
+                  <div class="card">
+                    <div class="card-header bg-light">
+                      <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Campos del Documento
+                      </h6>
+                    </div>
+                    <div class="card-body">
+                      <!-- Formulario para agregar nuevo campo -->
+                      <div class="row mb-3">
+                        <div class="col-md-4">
+                          <label for="nombreCampo" class="form-label">
+                            <i class="fas fa-tag me-1"></i>
+                            Nombre del Campo
+                          </label>
+                          <input type="text" class="form-control" id="nombreCampo" 
+                                 placeholder="Ej: Número de Identificación">
+                        </div>
+                        <div class="col-md-3">
+                          <label for="tipoCampo" class="form-label">
+                            <i class="fas fa-cog me-1"></i>
+                            Tipo de Campo
+                          </label>
+                          <select class="form-select" id="tipoCampo">
+                            <option value="linea_texto">Línea de Texto</option>
+                            <option value="fecha">Fecha</option>
+                            <option value="numerico">Numérico</option>
+                          </select>
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            Obligatorio
+                          </label>
+                          <div class="row">
+                            <div class="col-6">
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="obligatorioCampo" id="obligatorioCampoSi" value="Sí">
+                                <label class="form-check-label" for="obligatorioCampoSi">
+                                  Sí
+                                </label>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="obligatorioCampo" id="obligatorioCampoNo" value="No" checked>
+                                <label class="form-check-label" for="obligatorioCampoNo">
+                                  No
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                          <button type="button" class="btn btn-outline-primary w-100" id="btnAgregarCampo">
+                            <i class="fas fa-plus me-1"></i>
+                            Agregar
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Tabla de campos agregados -->
+                      <div id="camposDocumentoContainer">
+                        <div class="text-center py-3 text-muted">
+                          <i class="fas fa-list fa-2x mb-2"></i>
+                          <p class="mb-0">No hay campos agregados</p>
+                          <small>Use el formulario de arriba para agregar campos al documento</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
             <div class="modal-footer">
@@ -425,6 +500,9 @@ class DocumentoView extends BaseView {
       console.error('❌ Botón Guardar Documento no encontrado');
     }
 
+    // Configurar eventos para campos del documento
+    this.setupCamposDocumentoEvents();
+
     if (form) {
       form.addEventListener('submit', e => {
         console.log('📝 Submit del formulario');
@@ -470,6 +548,9 @@ class DocumentoView extends BaseView {
       permitePlazosAmpliados: document.querySelector(
         'input[name="permitePlazosAmpliados"]:checked'
       )?.value,
+      datosRemitenMatfin: document.querySelector(
+        'input[name="datosRemitenMatfin"]:checked'
+      )?.value,
     };
 
     // Validar campos requeridos
@@ -482,6 +563,7 @@ class DocumentoView extends BaseView {
       'requiereAprobacion',
       'vigenciaEnDias',
       'permitePlazosAmpliados',
+      'datosRemitenMatfin',
     ];
 
     for (const field of requiredFields) {
@@ -512,11 +594,14 @@ class DocumentoView extends BaseView {
       console.log('✅ EventManager encontrado, emitiendo evento');
       window.tramiteApp.eventManager.emit('documento:createFromForm', {
         formData,
+        camposDocumento: this.camposTemporales || [],
         callback: result => {
           console.log('📨 Callback recibido:', result);
           if (result.success) {
             console.log('✅ Documento guardado exitosamente');
             this.showAlert(result.message, 'success');
+            // Limpiar campos temporales
+            this.camposTemporales = [];
             // Cerrar el modal
             const modal = bootstrap.Modal.getInstance(
               document.getElementById('modalCrearDocumento')
@@ -575,5 +660,211 @@ class DocumentoView extends BaseView {
       // Fallback: mostrar alerta simple
       alert(message);
     }
+  }
+
+  /**
+   * Configura los eventos para la sección de campos del documento
+   */
+  setupCamposDocumentoEvents() {
+    const btnAgregarCampo = document.getElementById('btnAgregarCampo');
+
+    if (btnAgregarCampo) {
+      btnAgregarCampo.addEventListener('click', () => {
+        this.agregarCampoDocumento();
+      });
+    }
+
+    // Permitir agregar campo con Enter
+    const nombreCampo = document.getElementById('nombreCampo');
+    if (nombreCampo) {
+      nombreCampo.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.agregarCampoDocumento();
+        }
+      });
+    }
+  }
+
+  /**
+   * Agrega un nuevo campo al documento
+   */
+  agregarCampoDocumento() {
+    const nombreCampo = document.getElementById('nombreCampo');
+    const tipoCampo = document.getElementById('tipoCampo');
+    const obligatorioCampo = document.querySelector(
+      'input[name="obligatorioCampo"]:checked'
+    );
+
+    // Validar campos
+    if (!nombreCampo.value.trim()) {
+      this.showAlert('El nombre del campo es requerido', 'warning');
+      nombreCampo.focus();
+      return;
+    }
+
+    if (!obligatorioCampo) {
+      this.showAlert('Debe seleccionar si el campo es obligatorio', 'warning');
+      return;
+    }
+
+    // Crear objeto del campo
+    const campoData = {
+      id: this.generateId(),
+      nombreCampo: nombreCampo.value.trim(),
+      tipoCampo: tipoCampo.value,
+      obligatorio: obligatorioCampo.value,
+    };
+
+    // Agregar a la lista temporal
+    this.camposTemporales = this.camposTemporales || [];
+    this.camposTemporales.push(campoData);
+
+    // Actualizar la tabla
+    this.renderCamposDocumento();
+
+    // Limpiar formulario
+    nombreCampo.value = '';
+    tipoCampo.value = 'linea_texto';
+    document.getElementById('obligatorioCampoNo').checked = true;
+    nombreCampo.focus();
+  }
+
+  /**
+   * Renderiza la tabla de campos del documento
+   */
+  renderCamposDocumento() {
+    const container = document.getElementById('camposDocumentoContainer');
+    if (!container) return;
+
+    if (!this.camposTemporales || this.camposTemporales.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-3 text-muted">
+          <i class="fas fa-list fa-2x mb-2"></i>
+          <p class="mb-0">No hay campos agregados</p>
+          <small>Use el formulario de arriba para agregar campos al documento</small>
+        </div>
+      `;
+      return;
+    }
+
+    let tableHTML = `
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th class="text-center">Nombre del Campo</th>
+              <th class="text-center">Tipo</th>
+              <th class="text-center">Obligatorio</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    this.camposTemporales.forEach((campo, index) => {
+      const tipoIcono = this.getTipoCampoIcono(campo.tipoCampo);
+      const tipoBadge = this.getTipoCampoBadge(campo.tipoCampo);
+      const obligatorioBadge =
+        campo.obligatorio === 'Sí' ? 'bg-warning' : 'bg-secondary';
+
+      tableHTML += `
+        <tr>
+          <td class="text-center">
+            <strong>${this.escapeHtml(campo.nombreCampo)}</strong>
+          </td>
+          <td class="text-center">
+            <span class="badge ${tipoBadge}">
+              <i class="${tipoIcono} me-1"></i>
+              ${this.getTipoCampoLegible(campo.tipoCampo)}
+            </span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${obligatorioBadge}">
+              ${this.escapeHtml(campo.obligatorio)}
+            </span>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="documentoView.eliminarCampoTemporal(${index})"
+                    data-bs-toggle="tooltip" 
+                    title="Eliminar campo">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tableHTML += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = tableHTML;
+  }
+
+  /**
+   * Elimina un campo temporal de la lista
+   * @param {number} index - Índice del campo a eliminar
+   */
+  eliminarCampoTemporal(index) {
+    if (this.camposTemporales && this.camposTemporales[index]) {
+      const campo = this.camposTemporales[index];
+      this.camposTemporales.splice(index, 1);
+      this.renderCamposDocumento();
+      this.showAlert(`Campo "${campo.nombreCampo}" eliminado`, 'info');
+    }
+  }
+
+  /**
+   * Obtiene el icono del tipo de campo
+   * @param {string} tipoCampo - Tipo del campo
+   * @returns {string} Clase del icono
+   */
+  getTipoCampoIcono(tipoCampo) {
+    const iconos = {
+      linea_texto: 'fas fa-font',
+      fecha: 'fas fa-calendar-alt',
+      numerico: 'fas fa-hashtag',
+    };
+    return iconos[tipoCampo] || 'fas fa-question';
+  }
+
+  /**
+   * Obtiene el color del badge para el tipo de campo
+   * @param {string} tipoCampo - Tipo del campo
+   * @returns {string} Clase del badge
+   */
+  getTipoCampoBadge(tipoCampo) {
+    const colores = {
+      linea_texto: 'bg-primary',
+      fecha: 'bg-info',
+      numerico: 'bg-success',
+    };
+    return colores[tipoCampo] || 'bg-secondary';
+  }
+
+  /**
+   * Obtiene el nombre legible del tipo de campo
+   * @param {string} tipoCampo - Tipo del campo
+   * @returns {string} Nombre legible
+   */
+  getTipoCampoLegible(tipoCampo) {
+    const tipos = {
+      linea_texto: 'Línea de Texto',
+      fecha: 'Fecha',
+      numerico: 'Numérico',
+    };
+    return tipos[tipoCampo] || tipoCampo;
+  }
+
+  /**
+   * Genera un ID único
+   * @returns {string} ID único
+   */
+  generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 }

@@ -1441,6 +1441,7 @@ class TramiteView extends BaseView {
                 <th class="text-center">Formato</th>
                 <th class="text-center">Obligatorio</th>
                 <th class="text-center">MATFIN</th>
+                <th class="text-center">Campos</th>
                 <th class="text-center">Estado</th>
                 <th class="text-center">Fecha</th>
                 <th class="text-center">Acciones</th>
@@ -1510,6 +1511,9 @@ class TramiteView extends BaseView {
               }">
                 ${this.escapeHtml(documento.datosRemitenMatfin || 'No')}
               </span>
+            </td>
+            <td class="text-center">
+              ${this.renderCamposDocumento(documento.id)}
             </td>
             <td class="text-center">${estadoBadge}</td>
             <td class="text-center">${fecha}</td>
@@ -1669,6 +1673,93 @@ class TramiteView extends BaseView {
       console.error('Error al desvincular documento:', error);
       this.showAlert('Error al desvincular el documento', 'danger');
     }
+  }
+
+  /**
+   * Obtiene los campos personalizados de un documento
+   * @param {string} documentoId - ID del documento
+   * @returns {Array} Array de campos del documento
+   */
+  obtenerCamposDocumento(documentoId) {
+    try {
+      if (!window.campoDocumentoService) {
+        return [];
+      }
+      return window.campoDocumentoService.getCamposByDocumentoId(documentoId);
+    } catch (error) {
+      console.error('Error al obtener campos del documento:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Renderiza los campos personalizados de un documento para la tabla
+   * @param {string} documentoId - ID del documento
+   * @returns {string} HTML de los campos
+   */
+  renderCamposDocumento(documentoId) {
+    try {
+      const campos = this.obtenerCamposDocumento(documentoId);
+
+      if (!campos || campos.length === 0) {
+        return '<span class="text-muted">Sin campos</span>';
+      }
+
+      if (campos.length === 1) {
+        const campo = campos[0];
+        const icono = this.getTipoCampoIcono(campo.tipoCampo);
+        const badgeColor = this.getTipoCampoBadgeColor(campo.tipoCampo);
+        return `
+          <span class="badge ${badgeColor}" data-bs-toggle="tooltip" title="${this.escapeHtml(
+          campo.nombreCampo
+        )}">
+            <i class="${icono} me-1"></i>
+            ${this.escapeHtml(campo.nombreCampo)}
+          </span>
+        `;
+      }
+
+      // Si hay múltiples campos, mostrar un badge con el número
+      return `
+        <span class="badge bg-info" data-bs-toggle="tooltip" title="${campos
+          .map(c => c.nombreCampo)
+          .join(', ')}">
+          <i class="fas fa-list me-1"></i>
+          ${campos.length} campo(s)
+        </span>
+      `;
+    } catch (error) {
+      console.error('Error al renderizar campos del documento:', error);
+      return '<span class="text-muted">Error</span>';
+    }
+  }
+
+  /**
+   * Obtiene el icono del tipo de campo
+   * @param {string} tipoCampo - Tipo del campo
+   * @returns {string} Clase del icono
+   */
+  getTipoCampoIcono(tipoCampo) {
+    const iconos = {
+      linea_texto: 'fas fa-font',
+      fecha: 'fas fa-calendar-alt',
+      numerico: 'fas fa-hashtag',
+    };
+    return iconos[tipoCampo] || 'fas fa-question';
+  }
+
+  /**
+   * Obtiene el color del badge para el tipo de campo
+   * @param {string} tipoCampo - Tipo del campo
+   * @returns {string} Clase del badge
+   */
+  getTipoCampoBadgeColor(tipoCampo) {
+    const colores = {
+      linea_texto: 'bg-primary',
+      fecha: 'bg-info',
+      numerico: 'bg-success',
+    };
+    return colores[tipoCampo] || 'bg-secondary';
   }
 
   /**

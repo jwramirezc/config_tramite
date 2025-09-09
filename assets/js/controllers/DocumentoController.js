@@ -92,10 +92,11 @@ class DocumentoController extends BaseController {
    */
   async createDocumentoFromForm(data) {
     return await this.executeAction(async () => {
-      const { formData, callback } = data;
+      const { formData, camposDocumento, callback } = data;
 
       const result = await this.documentoService.createDocumentoFromForm(
-        formData
+        formData,
+        camposDocumento
       );
 
       if (result.success) {
