@@ -336,6 +336,32 @@ class DocumentoView extends BaseView {
                     </div>
                   </div>
                 </div>
+
+                <!-- Datos que se remiten MATFIN -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="fas fa-database me-1"></i>
+                    Datos que se remiten MATFIN
+                  </label>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="datosRemitenMatfin" id="datosRemitenMatfinSi" value="Sí" required>
+                        <label class="form-check-label" for="datosRemitenMatfinSi">
+                          Sí
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="datosRemitenMatfin" id="datosRemitenMatfinNo" value="No" required>
+                        <label class="form-check-label" for="datosRemitenMatfinNo">
+                          No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
             <div class="modal-footer">

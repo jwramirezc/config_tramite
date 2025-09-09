@@ -717,7 +717,7 @@ class TramiteView extends BaseView {
             <div class="modal-header">
               <h5 class="modal-title">
                 <i class="fas fa-file-upload me-2"></i>
-                Añadir Documentos - ${this.escapeHtml(tramite.nombre)}
+                Documentos Vinculados - ${this.escapeHtml(tramite.nombre)}
               </h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -756,7 +756,7 @@ class TramiteView extends BaseView {
                 <!-- Tabla unificada de documentos del trámite -->
                 <div class="mb-4">
                   <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                       <h6 class="mb-0">
                         <i class="fas fa-file-alt me-2"></i>
                         Documentos del Trámite
@@ -1440,6 +1440,7 @@ class TramiteView extends BaseView {
                 <th class="text-center">Descripción</th>
                 <th class="text-center">Formato</th>
                 <th class="text-center">Obligatorio</th>
+                <th class="text-center">MATFIN</th>
                 <th class="text-center">Estado</th>
                 <th class="text-center">Fecha</th>
                 <th class="text-center">Acciones</th>
@@ -1499,6 +1500,15 @@ class TramiteView extends BaseView {
                   : 'bg-secondary'
               }">
                 ${this.escapeHtml(documento.obligatoriedad || 'No')}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="badge ${
+                documento.datosRemitenMatfin === 'Sí'
+                  ? 'bg-success'
+                  : 'bg-secondary'
+              }">
+                ${this.escapeHtml(documento.datosRemitenMatfin || 'No')}
               </span>
             </td>
             <td class="text-center">${estadoBadge}</td>

@@ -30,6 +30,7 @@ class Documento {
     this.requiereAprobacion = data.requiereAprobacion || 'No';
     this.vigenciaEnDias = data.vigenciaEnDias || 0;
     this.permitePlazosAmpliados = data.permitePlazosAmpliados || 'No';
+    this.datosRemitenMatfin = data.datosRemitenMatfin || 'No';
   }
 
   /**
@@ -457,6 +458,7 @@ class Documento {
       requiereAprobacion: formData.requiereAprobacion,
       vigenciaEnDias: parseInt(formData.vigenciaEnDias) || 0,
       permitePlazosAmpliados: formData.permitePlazosAmpliados,
+      datosRemitenMatfin: formData.datosRemitenMatfin,
       estado: 'activo',
       version: '1.0',
       tags: [],
