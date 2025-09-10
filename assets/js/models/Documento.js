@@ -96,6 +96,7 @@ class Documento {
       'tipoDocumental',
       'descripcionDocumento',
       'tipoFormatoEsperado',
+      'tamanoMaximoPermitido',
       'obligatoriedad',
       'requiereAprobacion',
       'vigenciaEnDias',
@@ -180,6 +181,7 @@ class Documento {
       tipoDocumental: this.tipoDocumental,
       areaSolicitante: this.areaSolicitante,
       responsableValidacion: this.responsableValidacion,
+      seEnviaMatfin: this.seEnviaMatfin,
       datosRequeridos: this.datosRequeridos,
       fechaCreacion: this.fechaCreacion,
       fechaModificacion: this.fechaModificacion,
@@ -191,6 +193,7 @@ class Documento {
       nombreDocumento: this.nombreDocumento,
       descripcionDocumento: this.descripcionDocumento,
       tipoFormatoEsperado: this.tipoFormatoEsperado,
+      tamanoMaximoPermitido: this.tamanoMaximoPermitido,
       obligatoriedad: this.obligatoriedad,
       requiereAprobacion: this.requiereAprobacion,
       vigenciaEnDias: this.vigenciaEnDias,
@@ -452,7 +455,17 @@ class Documento {
    * @returns {Documento} Nueva instancia del documento
    */
   static fromCrearDocumentoFormData(formData) {
-    return new Documento({
+    // Debug: Log para verificar los datos recibidos
+    console.log(
+      '📋 FormData recibido en fromCrearDocumentoFormData:',
+      formData
+    );
+    console.log(
+      '📏 tamanoMaximoPermitido en formData:',
+      formData.tamanoMaximoPermitido
+    );
+
+    const documento = new Documento({
       nombreDocumento: formData.nombreDocumento,
       tipoDocumental: formData.tipoDocumental,
       descripcionDocumento: formData.descripcionDocumento,
@@ -469,6 +482,15 @@ class Documento {
       version: '1.0',
       tags: [],
     });
+
+    // Debug: Log para verificar el documento creado
+    console.log('📄 Documento creado:', documento);
+    console.log(
+      '📏 tamanoMaximoPermitido en documento:',
+      documento.tamanoMaximoPermitido
+    );
+
+    return documento;
   }
 
   /**

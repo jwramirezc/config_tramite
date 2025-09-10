@@ -1305,7 +1305,22 @@ class TramiteView extends BaseView {
     try {
       // Los documentos se guardan con la clave 'documentos_tramites' en DocumentoService
       const documentos = localStorage.getItem('documentos_tramites');
-      return documentos ? JSON.parse(documentos) : [];
+      const documentosParsed = documentos ? JSON.parse(documentos) : [];
+
+      // Debug: Log para verificar los documentos recuperados
+      console.log(
+        '💾 Documentos recuperados del localStorage:',
+        documentosParsed
+      );
+      if (documentosParsed.length > 0) {
+        console.log('📄 Primer documento:', documentosParsed[0]);
+        console.log(
+          '📏 Campos del primer documento:',
+          Object.keys(documentosParsed[0])
+        );
+      }
+
+      return documentosParsed;
     } catch (error) {
       console.error('Error al obtener documentos creados:', error);
       return [];
@@ -1367,6 +1382,14 @@ class TramiteView extends BaseView {
     // Obtener información del documento seleccionado
     const documentosCreados = this.obtenerDocumentosCreados();
     const documento = documentosCreados.find(doc => doc.id === documentoId);
+
+    // Debug: Log para verificar los datos del documento
+    console.log('📋 Documentos creados encontrados:', documentosCreados);
+    console.log('📄 Documento seleccionado:', documento);
+    console.log(
+      '📏 Tamaño máximo permitido del documento:',
+      documento?.tamanoMaximoPermitido
+    );
 
     if (!documento) {
       this.showAlert('Documento no encontrado', 'danger');
@@ -1445,6 +1468,13 @@ class TramiteView extends BaseView {
   mostrarDocumentoSeleccionado(documento) {
     const container = document.getElementById('documentoSeleccionadoContainer');
     const infoContainer = document.getElementById('documentoSeleccionadoInfo');
+
+    // Debug: Log para verificar los datos del documento a mostrar
+    console.log('🖥️ Documento a mostrar en pantalla:', documento);
+    console.log(
+      '📏 Tamaño máximo permitido a mostrar:',
+      documento?.tamanoMaximoPermitido
+    );
 
     if (!container || !infoContainer) return;
 

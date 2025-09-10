@@ -97,7 +97,36 @@ class BaseService {
       const dataToSave = this.items.map(item =>
         this.prepareDataForStorage(item)
       );
+
+      // Debug: Log para verificar qué se está guardando
+      console.log(
+        `💾 Guardando ${this.entityName}s en localStorage:`,
+        this.storageKey
+      );
+      console.log(`💾 Datos a guardar:`, dataToSave);
+      if (dataToSave.length > 0) {
+        console.log(
+          `💾 Último item guardado:`,
+          dataToSave[dataToSave.length - 1]
+        );
+        if (
+          dataToSave[dataToSave.length - 1].tamanoMaximoPermitido !== undefined
+        ) {
+          console.log(
+            `💾 tamanoMaximoPermitido del último item:`,
+            dataToSave[dataToSave.length - 1].tamanoMaximoPermitido
+          );
+        }
+      }
+
       localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
+
+      // Debug: Verificar que se guardó correctamente
+      const savedData = localStorage.getItem(this.storageKey);
+      console.log(
+        `💾 Datos guardados en localStorage:`,
+        savedData ? JSON.parse(savedData) : null
+      );
     } catch (error) {
       console.error(
         `❌ Error al guardar ${this.entityName}s en almacenamiento:`,
@@ -113,10 +142,23 @@ class BaseService {
    * @returns {Object} Datos preparados
    */
   prepareDataForStorage(item) {
+    let preparedItem;
     if (typeof item.toJSON === 'function') {
-      return item.toJSON();
+      preparedItem = item.toJSON();
+    } else {
+      preparedItem = item;
     }
-    return item;
+
+    // Debug: Log para verificar el item preparado
+    console.log(`🔧 Preparando item para almacenamiento:`, preparedItem);
+    if (preparedItem.tamanoMaximoPermitido !== undefined) {
+      console.log(
+        `🔧 tamanoMaximoPermitido en item preparado:`,
+        preparedItem.tamanoMaximoPermitido
+      );
+    }
+
+    return preparedItem;
   }
 
   /**

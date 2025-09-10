@@ -331,8 +331,8 @@ class DocumentoView extends BaseView {
                     <i class="fas fa-weight-hanging me-1"></i>
                     Tamaño máximo permitido (MB)
                   </label>
-                  <input type="text" class="form-control" id="tamanoMaximoPermitido" 
-                         placeholder="Ejemplo: 5, 10, 30" required>
+                  <input type="number" class="form-control" id="tamanoMaximoPermitido" 
+                         placeholder="Ejemplo: 5, 10, 30" min="1" step="0.1" required>
                   <div class="form-text">Ingrese el tamaño máximo permitido para el documento (ejemplo: 5MB, 10MB, 2GB)</div>
                 </div>
 
@@ -606,9 +606,14 @@ class DocumentoView extends BaseView {
       tipoFormatoEsperado: document
         .getElementById('tipoFormatoEsperado')
         .value.trim(),
-      tamanoMaximoPermitido: document
-        .getElementById('tamanoMaximoPermitido')
-        .value.trim(),
+      tamanoMaximoPermitido: (() => {
+        const campo = document.getElementById('tamanoMaximoPermitido');
+        const valor = campo ? campo.value.trim() : '';
+        console.log('🔍 Campo tamanoMaximoPermitido encontrado:', !!campo);
+        console.log('🔍 Valor capturado del campo:', valor);
+        console.log('🔍 Tipo del valor:', typeof valor);
+        return valor;
+      })(),
       obligatoriedad: document.querySelector(
         'input[name="obligatoriedad"]:checked'
       )?.value,
@@ -658,6 +663,22 @@ class DocumentoView extends BaseView {
       );
       return;
     }
+
+    // Validar que tamanoMaximoPermitido sea un número positivo
+    if (
+      isNaN(formData.tamanoMaximoPermitido) ||
+      parseFloat(formData.tamanoMaximoPermitido) <= 0
+    ) {
+      this.showAlert(
+        'El tamaño máximo permitido debe ser un número positivo',
+        'warning'
+      );
+      return;
+    }
+
+    // Debug: Log para verificar los datos capturados
+    console.log('📋 Datos del formulario capturados:', formData);
+    console.log('📏 Tamaño máximo permitido:', formData.tamanoMaximoPermitido);
 
     // Emitir evento para guardar el documento
     console.log('📡 Emitiendo evento documento:createFromForm');
