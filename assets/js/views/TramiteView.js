@@ -715,7 +715,7 @@ class TramiteView extends BaseView {
             <div class="modal-header">
               <h5 class="modal-title">
                 <i class="fas fa-file-upload me-2"></i>
-                Documentos Vinculados - ${this.escapeHtml(tramite.nombre)}
+                Vincular Documentos - ${this.escapeHtml(tramite.nombre)}
               </h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -897,8 +897,7 @@ class TramiteView extends BaseView {
                 Cancelar
               </button>
               <button type="button" class="btn btn-primary" id="btnCerrarDocumentos">
-                <i class="fas fa-check me-1"></i>
-                Cerrar
+                Guardar
               </button>
             </div>
           </div>
@@ -1296,11 +1295,11 @@ class TramiteView extends BaseView {
     if (!container || !infoContainer) return;
 
     const html = `
-      <div class="row">
-        <div class="col-md-6">
-          <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
-            documento.nombreDocumento
-          )}</p>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
+                          documento.nombreDocumento
+                        )}</p>
           <p class="mb-2"><strong>Tipo Documental:</strong> <span class="badge bg-primary">${this.escapeHtml(
             documento.tipoDocumental
           )}</span></p>
@@ -1310,8 +1309,8 @@ class TramiteView extends BaseView {
           <p class="mb-2"><strong>Formato:</strong> <span class="badge bg-info">${this.escapeHtml(
             documento.tipoFormatoEsperado || 'N/A'
           )}</span></p>
-        </div>
-        <div class="col-md-6">
+                      </div>
+                      <div class="col-md-6">
           <p class="mb-2"><strong>Área Solicitante:</strong> <span class="badge bg-secondary">${this.escapeHtml(
             documento.areaSolicitante || 'N/A'
           )}</span></p>
