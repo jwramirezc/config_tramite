@@ -929,6 +929,103 @@ class TramiteView extends BaseView {
   }
 
   /**
+   * Muestra un modal para ver los documentos vinculados al trámite
+   * @param {Tramite} tramite - Trámite del cual se mostrarán los documentos
+   */
+  showVerDocumentosModal(tramite) {
+    const modalHTML = `
+      <div class="modal fade" id="verDocumentosModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-file-alt me-2"></i>
+                Ver Documentos - ${this.escapeHtml(tramite.nombre)}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Información del trámite actual -->
+              <div class="mb-4">
+                <div class="card">
+                  <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                      <i class="fas fa-info-circle me-2"></i>
+                      Información del Trámite Actual
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
+                          tramite.nombre
+                        )}</p>
+                        <p class="mb-0"><strong>Estado:</strong> ${tramite.getEstadoPorFechas()}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <p class="mb-2"><strong>Código:</strong> ${this.escapeHtml(
+                          tramite.codigo
+                        )}</p>
+                        <p class="mb-0"><strong>Descripción:</strong> ${this.escapeHtml(
+                          tramite.descripcion || 'Sin descripción'
+                        )}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla de documentos vinculados -->
+              <div class="mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">
+                      <i class="fas fa-file-alt me-2"></i>
+                      Documentos Vinculados al Trámite
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div id="documentosVinculadosContainer">
+                      <!-- La tabla se generará dinámicamente -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Remover modal anterior si existe
+    const existingModal = document.getElementById('verDocumentosModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Agregar nuevo modal
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Configurar eventos del modal
+    this.setupVerDocumentosModalEvents(tramite);
+
+    // Mostrar modal
+    const modal = document.getElementById('verDocumentosModal');
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    // Limpiar modal después de cerrar
+    modal.addEventListener('hidden.bs.modal', () => {
+      modal.remove();
+    });
+  }
+
+  /**
    * Configura los eventos del modal de documentos
    * @param {Tramite} tramite - Trámite asociado
    */
@@ -969,6 +1066,15 @@ class TramiteView extends BaseView {
   }
 
   /**
+   * Configura los eventos del modal de ver documentos
+   * @param {Tramite} tramite - Trámite asociado
+   */
+  setupVerDocumentosModalEvents(tramite) {
+    // Cargar tabla de documentos vinculados
+    this.cargarDocumentosVinculadosParaVer(tramite.id);
+  }
+
+  /**
    * Carga los documentos vinculados al trámite en la tabla correspondiente
    * @param {string} tramiteId - ID del trámite
    */
@@ -993,6 +1099,40 @@ class TramiteView extends BaseView {
   }
 
   /**
+   * Carga los documentos vinculados para el modal de ver documentos
+   * @param {string} tramiteId - ID del trámite
+   */
+  cargarDocumentosVinculadosParaVer(tramiteId) {
+    try {
+      // Obtener documentos vinculados con información completa
+      const documentosVinculados =
+        this.obtenerDocumentosVinculadosCompletos(tramiteId);
+
+      // Debug: Log para verificar los datos
+      console.log(
+        'Documentos vinculados para tramite',
+        tramiteId,
+        ':',
+        documentosVinculados
+      );
+
+      // Obtener el contenedor de la tabla
+      const container = document.getElementById(
+        'documentosVinculadosContainer'
+      );
+      if (!container) return;
+
+      // Renderizar la tabla específica para ver documentos
+      container.innerHTML = this.renderTablaDocumentosParaVer(
+        documentosVinculados,
+        tramiteId
+      );
+    } catch (error) {
+      console.error('Error al cargar documentos vinculados para ver:', error);
+    }
+  }
+
+  /**
    * Cierra el modal y guarda el documento seleccionado
    * @param {Tramite} tramite - Trámite asociado
    */
@@ -1005,16 +1145,19 @@ class TramiteView extends BaseView {
       if (documentoSeleccionado) {
         const documento = JSON.parse(documentoSeleccionado);
 
-        // Verificar si ya existe una vinculación para este trámite
+        // Verificar si ya existe una vinculación para este documento específico en este trámite
         const vinculacionesExistentes = this.obtenerDocumentosVinculados(
           tramite.id
         );
+        const vinculacionExistenteDelDocumento = vinculacionesExistentes.find(
+          v => v.documentoId === documento.id
+        );
 
-        // Si ya existe una vinculación, removerla primero
-        if (vinculacionesExistentes.length > 0) {
+        // Si ya existe una vinculación para este documento específico, removerla primero
+        if (vinculacionExistenteDelDocumento) {
           const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
           const vinculacionesFiltradas = todasLasVinculaciones.filter(
-            v => v.tramiteId !== tramite.id
+            v => !(v.tramiteId === tramite.id && v.documentoId === documento.id)
           );
           localStorage.setItem(
             'tramite_documentos_vinculaciones',
@@ -1022,12 +1165,16 @@ class TramiteView extends BaseView {
           );
         }
 
-        // Crear nueva vinculación
+        // Crear nueva vinculación con información adicional
         const nuevaVinculacion = {
           id: this.generateId(),
           tramiteId: tramite.id,
           documentoId: documento.id,
           fechaVinculacion: new Date().toISOString(),
+          // Campos adicionales del formulario
+          areaSolicitante: documento.areaSolicitante,
+          responsableValidacion: documento.responsableValidacion,
+          seEnviaMatfin: documento.seEnviaMatfin,
         };
 
         // Obtener todas las vinculaciones y agregar la nueva
@@ -1043,11 +1190,18 @@ class TramiteView extends BaseView {
           JSON.stringify(vinculacionesActualizadas)
         );
 
+        // Debug: Log para verificar que se guardó correctamente
+        console.log('Vinculación guardada:', nuevaVinculacion);
+        console.log(
+          'Todas las vinculaciones actualizadas:',
+          vinculacionesActualizadas
+        );
+
         // Limpiar documento seleccionado temporal
         localStorage.removeItem(selectedKey);
 
         this.showAlert(
-          `Documento "${documento.nombreDocumento}" vinculado exitosamente al trámite`,
+          `Documento "${documento.nombreDocumento}" vinculado exitosamente al trámite. Puede vincular más documentos si lo desea.`,
           'success'
         );
       } else {
@@ -1656,6 +1810,13 @@ class TramiteView extends BaseView {
             ...documento,
             fechaVinculacion: vinculacion.fechaVinculacion,
             vinculacionId: vinculacion.id,
+            // Usar los campos adicionales de la vinculación si existen
+            areaSolicitante:
+              vinculacion.areaSolicitante || documento.areaSolicitante,
+            responsableValidacion:
+              vinculacion.responsableValidacion ||
+              documento.responsableValidacion,
+            seEnviaMatfin: vinculacion.seEnviaMatfin || documento.seEnviaMatfin,
           });
         }
       });
@@ -1926,6 +2087,120 @@ class TramiteView extends BaseView {
   }
 
   /**
+   * Renderiza la tabla de documentos para el modal de ver documentos
+   * @param {Array} documentos - Array de documentos vinculados
+   * @param {string} tramiteId - ID del trámite
+   * @returns {string} HTML de la tabla
+   */
+  renderTablaDocumentosParaVer(documentos, tramiteId) {
+    if (!documentos || documentos.length === 0) {
+      return `
+        <div class="text-center py-4">
+          <i class="fas fa-link fa-3x text-muted mb-3"></i>
+          <h6 class="text-muted">No hay documentos vinculados a este trámite</h6>
+          <p class="text-muted">Los documentos aparecerán aquí una vez que sean vinculados desde la opción "Vincular Documentos".</p>
+        </div>
+      `;
+    }
+
+    let tableHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-center">Nombre</th>
+              <th class="text-center">Tipo Documental</th>
+              <th class="text-center">Descripción</th>
+              <th class="text-center">Área Solicitante</th>
+              <th class="text-center">Responsable</th>
+              <th class="text-center">MaTfin</th>
+              <th class="text-center">Formato</th>
+              <th class="text-center">Tamaño</th>
+              <th class="text-center">Obligatorio</th>
+              <th class="text-center">Fecha Vinculación</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    documentos.forEach(documento => {
+      tableHTML += `
+        <tr>
+          <td class="text-center">
+            <strong>${this.escapeHtml(documento.nombreDocumento)}</strong>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.tipoDocumental
+            )}</span>
+          </td>
+          <td class="text-center">
+            <small class="text-muted">${this.escapeHtml(
+              documento.descripcionDocumento || 'Sin descripción'
+            )}</small>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-secondary">${this.escapeHtml(
+              documento.areaSolicitante || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.responsableValidacion || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${
+              documento.seEnviaMatfin === 'Sí' ? 'bg-success' : 'bg-secondary'
+            }">
+              ${this.escapeHtml(documento.seEnviaMatfin || 'No')}
+            </span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-info">${this.escapeHtml(
+              documento.tipoFormatoEsperado || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-warning">${this.escapeHtml(
+              documento.tamanoMaximoPermitido || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${
+              documento.obligatoriedad === 'Sí' ? 'bg-warning' : 'bg-secondary'
+            }">
+              ${this.escapeHtml(documento.obligatoriedad || 'No')}
+            </span>
+          </td>
+          <td class="text-center">${this.formatDate(
+            documento.fechaVinculacion
+          )}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="tramiteView.eliminarDocumentoVinculado('${
+                      documento.vinculacionId
+                    }', '${documento.id}', '${tramiteId}')"
+                    data-bs-toggle="tooltip" 
+                    title="Eliminar documento vinculado">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tableHTML += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    return tableHTML;
+  }
+
+  /**
    * Formatea una fecha para mostrar
    * @param {string} fecha - Fecha en formato ISO
    * @returns {string} Fecha formateada
@@ -1986,6 +2261,38 @@ class TramiteView extends BaseView {
     } catch (error) {
       console.error('Error al desvincular documento:', error);
       this.showAlert('Error al desvincular el documento', 'danger');
+    }
+  }
+
+  /**
+   * Elimina un documento vinculado desde el modal de ver documentos
+   * @param {string} vinculacionId - ID de la vinculación
+   * @param {string} documentoId - ID del documento
+   * @param {string} tramiteId - ID del trámite
+   */
+  eliminarDocumentoVinculado(vinculacionId, documentoId, tramiteId) {
+    try {
+      // Obtener todas las vinculaciones
+      const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
+
+      // Filtrar la vinculación a eliminar
+      const vinculacionesFiltradas = todasLasVinculaciones.filter(
+        v => v.id !== vinculacionId
+      );
+
+      // Guardar en localStorage
+      localStorage.setItem(
+        'tramite_documentos_vinculaciones',
+        JSON.stringify(vinculacionesFiltradas)
+      );
+
+      this.showAlert('Documento eliminado exitosamente', 'success');
+
+      // Recargar la tabla de documentos vinculados
+      this.cargarDocumentosVinculadosParaVer(tramiteId);
+    } catch (error) {
+      console.error('Error al eliminar documento vinculado:', error);
+      this.showAlert('Error al eliminar el documento', 'danger');
     }
   }
 

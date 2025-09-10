@@ -63,6 +63,11 @@ class TramiteController extends BaseController {
       );
     }
 
+    const btnVerDocumentos = document.getElementById('btnVerDocumentos');
+    if (btnVerDocumentos) {
+      btnVerDocumentos.addEventListener('click', () => this.verDocumentos());
+    }
+
     const btnActivarInactivarTramite = document.getElementById(
       'btnActivarInactivarTramite'
     );
@@ -514,6 +519,36 @@ class TramiteController extends BaseController {
       console.error('Error al abrir modal de documentos:', error);
       this.tramiteView.showAlert(
         'Error al abrir el modal de documentos',
+        'danger'
+      );
+    }
+  }
+
+  /**
+   * Ver documentos vinculados a un trámite
+   */
+  verDocumentos() {
+    try {
+      if (!this.currentTramiteId) {
+        this.tramiteView.showAlert(
+          'No se ha seleccionado ningún trámite',
+          'warning'
+        );
+        return;
+      }
+
+      const tramite = this.tramiteService.getById(this.currentTramiteId);
+      if (!tramite) {
+        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
+        return;
+      }
+
+      this.tramiteView.hideOpcionesModal();
+      this.tramiteView.showVerDocumentosModal(tramite);
+    } catch (error) {
+      console.error('Error al abrir modal de ver documentos:', error);
+      this.tramiteView.showAlert(
+        'Error al abrir el modal de ver documentos',
         'danger'
       );
     }
