@@ -9,11 +9,9 @@ class Tramite {
    */
   constructor(data = {}) {
     this.id = data.id || this.generateId();
+    this.codigo = data.codigo || '';
     this.nombre = data.nombre || '';
-    this.periodoAnio = data.periodoAnio || '';
-    this.periodoSemestre = data.periodoSemestre || '';
-    this.sede = data.sede || '';
-    this.jornada = data.jornada || '';
+    this.descripcion = data.descripcion || '';
     this.fechaInicio = data.fechaInicio || '';
     this.fechaFinalizacion = data.fechaFinalizacion || '';
     this.fechaInicioSubsanacion = data.fechaInicioSubsanacion || '';
@@ -41,13 +39,7 @@ class Tramite {
    */
   validate() {
     const errors = [];
-    const requiredFields = [
-      'nombre',
-      'periodoAnio',
-      'periodoSemestre',
-      'sede',
-      'jornada',
-    ];
+    const requiredFields = ['codigo', 'nombre', 'descripcion'];
 
     requiredFields.forEach(field => {
       if (!this[field] || this[field].toString().trim() === '') {
@@ -68,11 +60,9 @@ class Tramite {
    */
   getFieldLabel(field) {
     const labels = {
+      codigo: 'Código del trámite',
       nombre: 'Nombre del trámite',
-      periodoAnio: 'Año del periodo',
-      periodoSemestre: 'Semestre del periodo',
-      sede: 'Sede',
-      jornada: 'Jornada',
+      descripcion: 'Descripción del trámite',
       fechaInicio: 'Fecha de inicio',
       fechaFinalizacion: 'Fecha de finalización',
       fechaInicioSubsanacion: 'Fecha inicio de subsanación',
@@ -121,22 +111,6 @@ class Tramite {
       }
     });
     this.fechaModificacion = new Date().toISOString();
-  }
-
-  /**
-   * Obtiene el periodo completo formateado
-   * @returns {string} Periodo formateado
-   */
-  getPeriodoCompleto() {
-    return `${this.periodoAnio} - ${this.periodoSemestre}`;
-  }
-
-  /**
-   * Obtiene la información institucional completa
-   * @returns {string} Información institucional completa
-   */
-  getInformacionInstitucional() {
-    return `${this.sede} - ${this.jornada}`;
   }
 
   /**
@@ -223,11 +197,9 @@ class Tramite {
    */
   static fromFormData(formData) {
     return new Tramite({
+      codigo: formData.codigoTramite,
       nombre: formData.nombreTramite,
-      periodoAnio: formData.periodoAnio,
-      periodoSemestre: formData.periodoSemestre,
-      sede: formData.sede,
-      jornada: formData.jornada,
+      descripcion: formData.descripcionTramite,
     });
   }
 

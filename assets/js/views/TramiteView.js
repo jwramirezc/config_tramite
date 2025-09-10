@@ -47,10 +47,9 @@ class TramiteView extends BaseView {
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th class="text-center">Código</th>
                             <th class="text-center">Nombre</th>
-                            <th class="text-center">Periodo</th>
-                            <th class="text-center">Sede</th>
-                            <th class="text-center">Jornada</th>
+                            <th class="text-center">Descripción</th>
                             <th class="text-center">Fecha Inicio</th>
                             <th class="text-center">Fecha Fin</th>
                             <th class="text-center">Fecha Inicio Subs</th>
@@ -85,17 +84,18 @@ class TramiteView extends BaseView {
 
     return `
             <tr data-tramite-id="${tramite.id}">
+                <td class="text-center">
+                    <span class="badge bg-primary">${this.escapeHtml(
+                      tramite.codigo
+                    )}</span>
+                </td>
                 <td>
                     <strong>${this.escapeHtml(tramite.nombre)}</strong>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-info">${tramite.getPeriodoCompleto()}</span>
-                </td>
-                <td class="text-center">
-                    ${this.escapeHtml(tramite.sede)}
-                </td>
-                <td class="text-center">
-                    ${this.escapeHtml(tramite.jornada)}
+                    <small class="text-muted">${this.escapeHtml(
+                      tramite.descripcion || 'Sin descripción'
+                    )}</small>
                 </td>
                 <td class="text-center">
                     ${this.getFechaDisplay(tramite, 'fechaInicio')}
@@ -509,11 +509,9 @@ class TramiteView extends BaseView {
     if (!this.form) return;
 
     const fields = {
+      codigoTramite: tramite.codigo,
       nombreTramite: tramite.nombre,
-      periodoAnio: tramite.periodoAnio,
-      periodoSemestre: tramite.periodoSemestre,
-      sede: tramite.sede,
-      jornada: tramite.jornada,
+      descripcionTramite: tramite.descripcion,
       fechaInicio: tramite.fechaInicio,
       fechaFinalizacion: tramite.fechaFinalizacion,
       fechaInicioSubsanacion: tramite.fechaInicioSubsanacion,
@@ -738,14 +736,14 @@ class TramiteView extends BaseView {
                           <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
                             tramite.nombre
                           )}</p>
-                          <p class="mb-0"><strong>Periodo:</strong> ${tramite.getPeriodoCompleto()}</p>
+                          <p class="mb-0"><strong>Estado:</strong> ${tramite.getEstadoPorFechas()}</p>
                         </div>
                         <div class="col-md-6">
-                          <p class="mb-2"><strong>Sede:</strong> ${this.escapeHtml(
-                            tramite.sede
+                          <p class="mb-2"><strong>Código:</strong> ${this.escapeHtml(
+                            tramite.codigo
                           )}</p>
-                          <p class="mb-0"><strong>Jornada:</strong> ${this.escapeHtml(
-                            tramite.jornada
+                          <p class="mb-0"><strong>Descripción:</strong> ${this.escapeHtml(
+                            tramite.descripcion || 'Sin descripción'
                           )}</p>
                         </div>
                       </div>
@@ -753,38 +751,141 @@ class TramiteView extends BaseView {
                   </div>
                 </div>
 
-                <!-- Tabla unificada de documentos del trámite -->
+                <!-- Configuración de Documentos -->
+                <div class="mb-4">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>
+                        Configuración de Documentos
+                      </h6>
+                    </div>
+                    <div class="card-body">
+                      <!-- Área Solicitante -->
+                <div class="mb-3">
+                        <label for="areaSolicitanteDocumentos" class="form-label">
+                          <i class="fas fa-building me-1"></i>
+                          Área Solicitante
+                  </label>
+                        <select class="form-select" id="areaSolicitanteDocumentos" required>
+                          <option value="">Seleccione un área</option>
+                          <option value="Rectoría">Rectoría</option>
+                          <option value="Vicerrectoría Académica">Vicerrectoría Académica</option>
+                          <option value="Vicerrectoría Administrativa">Vicerrectoría Administrativa</option>
+                          <option value="Vicerrectoría de Investigación">Vicerrectoría de Investigación</option>
+                          <option value="Vicerrectoría de Extensión">Vicerrectoría de Extensión</option>
+                          <option value="Decanatura de Ingeniería">Decanatura de Ingeniería</option>
+                          <option value="Decanatura de Ciencias">Decanatura de Ciencias</option>
+                          <option value="Decanatura de Humanidades">Decanatura de Humanidades</option>
+                          <option value="Decanatura de Ciencias Económicas">Decanatura de Ciencias Económicas</option>
+                          <option value="Decanatura de Ciencias de la Salud">Decanatura de Ciencias de la Salud</option>
+                          <option value="Registro Académico">Registro Académico</option>
+                          <option value="Admisiones">Admisiones</option>
+                          <option value="Bienestar Universitario">Bienestar Universitario</option>
+                          <option value="Biblioteca">Biblioteca</option>
+                          <option value="Tecnología e Informática">Tecnología e Informática</option>
+                          <option value="Recursos Humanos">Recursos Humanos</option>
+                          <option value="Financiera">Financiera</option>
+                          <option value="Planeación">Planeación</option>
+                          <option value="Calidad">Calidad</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+
+                      <!-- Responsable de Validación -->
+                <div class="mb-3">
+                        <label for="responsableValidacionDocumentos" class="form-label">
+                          <i class="fas fa-user-check me-1"></i>
+                          Responsable de Validación
+                  </label>
+                        <select class="form-select" id="responsableValidacionDocumentos" required>
+                          <option value="">Seleccione un responsable</option>
+                          <option value="VALIDADOR_ADMISIONES">VALIDADOR_ADMISIONES</option>
+                          <option value="VALIDADOR_POSGRADO">VALIDADOR_POSGRADO</option>
+                          <option value="VALIDADOR_FINANCIERO">VALIDADOR_FINANCIERO</option>
+                          <option value="VALIDADOR_ACADEMICO">VALIDADOR_ACADEMICO</option>
+                  </select>
+                </div>
+
+                      <!-- Se envía a MaTfin -->
+                <div class="mb-3">
+                        <label class="form-label">
+                          <i class="fas fa-paper-plane me-1"></i>
+                          Se envía a MaTfin
+                  </label>
+                        <div class="row">
+                          <div class="col-6">
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="seEnviaMatfinDocumentos" id="seEnviaMatfinDocumentosSi" value="Sí" required>
+                              <label class="form-check-label" for="seEnviaMatfinDocumentosSi">
+                                Sí
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="seEnviaMatfinDocumentos" id="seEnviaMatfinDocumentosNo" value="No" required>
+                              <label class="form-check-label" for="seEnviaMatfinDocumentosNo">
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selección de Documento -->
                 <div class="mb-4">
                   <div class="card">
                     <div class="card-header">
                       <h6 class="mb-0">
                         <i class="fas fa-file-alt me-2"></i>
-                        Documentos del Trámite
+                        Documento del Trámite
                       </h6>
                     </div>
                     <div class="card-body">
-                      <!-- Selector para agregar documentos -->
+                      <!-- Selector para elegir documento -->
                       <div class="mb-3">
                         <label for="selectDocumento" class="form-label">
                           <i class="fas fa-file-plus me-1"></i>
-                          Agregar Documento
+                          Seleccionar Documento
                         </label>
                         <div class="input-group">
                           <select class="form-select" id="selectDocumento">
-                            <option value="">Seleccione un documento para agregar</option>
+                            <option value="">Seleccione un documento</option>
                             <!-- Las opciones se cargarán dinámicamente -->
                           </select>
-                          <button type="button" class="btn btn-outline-primary" id="btnAgregarDocumento">
-                        <i class="fas fa-plus me-1"></i>
-                            Agregar
-                      </button>
-                    </div>
-                        <div class="form-text">Seleccione un documento creado previamente para vincularlo a este trámite</div>
+                          <button type="button" class="btn btn-outline-primary" id="btnSeleccionarDocumento">
+                            <i class="fas fa-check me-1"></i>
+                            Seleccionar
+                          </button>
+                      </div>
+                        <div class="form-text">Seleccione un documento creado previamente para este trámite</div>
                       </div>
                       
-                      <!-- Tabla unificada -->
-                      <div id="documentosUnificadosContainer">
-                        <!-- La tabla se generará dinámicamente -->
+                      <!-- Información del documento seleccionado -->
+                      <div id="documentoSeleccionadoContainer" style="display: none;">
+                        <div class="card bg-light">
+                          <div class="card-header">
+                            <h6 class="mb-0">
+                              <i class="fas fa-file-check me-2"></i>
+                              Documento Seleccionado
+                            </h6>
+                          </div>
+                          <div class="card-body">
+                            <div id="documentoSeleccionadoInfo">
+                              <!-- La información se mostrará dinámicamente -->
+                            </div>
+                            <div class="mt-3">
+                              <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemoverDocumento">
+                                <i class="fas fa-times me-1"></i>
+                                Remover Documento
+                      </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -833,29 +934,39 @@ class TramiteView extends BaseView {
    * @param {Tramite} tramite - Trámite asociado
    */
   setupDocumentosModalEvents(tramite) {
-    const btnAgregarDocumento = document.getElementById('btnAgregarDocumento');
+    const btnSeleccionarDocumento = document.getElementById(
+      'btnSeleccionarDocumento'
+    );
     const selectDocumento = document.getElementById('selectDocumento');
     const btnCerrarDocumentos = document.getElementById('btnCerrarDocumentos');
+    const btnRemoverDocumento = document.getElementById('btnRemoverDocumento');
 
     // Cargar documentos disponibles en el select
     this.cargarDocumentosDisponibles(selectDocumento, tramite.id);
 
-    // Evento para agregar documento seleccionado
-    if (btnAgregarDocumento) {
-      btnAgregarDocumento.addEventListener('click', () => {
-        this.agregarDocumentoSeleccionado(tramite);
+    // Evento para seleccionar documento
+    if (btnSeleccionarDocumento) {
+      btnSeleccionarDocumento.addEventListener('click', () => {
+        this.seleccionarDocumento(tramite);
       });
     }
 
-    // Evento para cerrar y guardar documentos pendientes
+    // Evento para remover documento seleccionado
+    if (btnRemoverDocumento) {
+      btnRemoverDocumento.addEventListener('click', () => {
+        this.removerDocumentoSeleccionado(tramite);
+      });
+    }
+
+    // Evento para cerrar y guardar documento seleccionado
     if (btnCerrarDocumentos) {
       btnCerrarDocumentos.addEventListener('click', () => {
-        this.cerrarYGuardarDocumentos(tramite);
+        this.cerrarYGuardarDocumento(tramite);
       });
     }
 
-    // Cargar tabla unificada de documentos
-    this.cargarDocumentosUnificados(tramite.id);
+    // Cargar documento seleccionado si existe
+    this.cargarDocumentoSeleccionado(tramite.id);
   }
 
   /**
@@ -883,35 +994,48 @@ class TramiteView extends BaseView {
   }
 
   /**
-   * Cierra el modal y guarda automáticamente los documentos pendientes
+   * Cierra el modal y guarda el documento seleccionado
    * @param {Tramite} tramite - Trámite asociado
    */
-  cerrarYGuardarDocumentos(tramite) {
+  cerrarYGuardarDocumento(tramite) {
     try {
-      // Obtener documentos temporales (pendientes)
-      const temporalKey = `documentos_temporal_${tramite.id}`;
-      const temporal = localStorage.getItem(temporalKey);
-      const documentosTemporales = temporal ? JSON.parse(temporal) : [];
+      // Obtener documento seleccionado
+      const selectedKey = `documento_seleccionado_${tramite.id}`;
+      const documentoSeleccionado = localStorage.getItem(selectedKey);
 
-      if (documentosTemporales.length > 0) {
-        // Obtener vinculaciones existentes
+      if (documentoSeleccionado) {
+        const documento = JSON.parse(documentoSeleccionado);
+
+        // Verificar si ya existe una vinculación para este trámite
         const vinculacionesExistentes = this.obtenerDocumentosVinculados(
           tramite.id
         );
 
-        // Crear nuevas vinculaciones para documentos temporales
-        const nuevasVinculaciones = documentosTemporales.map(documento => ({
+        // Si ya existe una vinculación, removerla primero
+        if (vinculacionesExistentes.length > 0) {
+          const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
+          const vinculacionesFiltradas = todasLasVinculaciones.filter(
+            v => v.tramiteId !== tramite.id
+          );
+          localStorage.setItem(
+            'tramite_documentos_vinculaciones',
+            JSON.stringify(vinculacionesFiltradas)
+          );
+        }
+
+        // Crear nueva vinculación
+        const nuevaVinculacion = {
           id: this.generateId(),
           tramiteId: tramite.id,
           documentoId: documento.id,
           fechaVinculacion: new Date().toISOString(),
-        }));
+        };
 
-        // Combinar vinculaciones existentes con las nuevas
+        // Obtener todas las vinculaciones y agregar la nueva
         const todasLasVinculaciones = this.obtenerTodasLasVinculaciones();
         const vinculacionesActualizadas = [
           ...todasLasVinculaciones,
-          ...nuevasVinculaciones,
+          nuevaVinculacion,
         ];
 
         // Guardar en localStorage
@@ -920,13 +1044,15 @@ class TramiteView extends BaseView {
           JSON.stringify(vinculacionesActualizadas)
         );
 
-        // Limpiar documentos temporales
-        localStorage.removeItem(temporalKey);
+        // Limpiar documento seleccionado temporal
+        localStorage.removeItem(selectedKey);
 
         this.showAlert(
-          `${documentosTemporales.length} documento(s) vinculado(s) exitosamente al trámite`,
+          `Documento "${documento.nombreDocumento}" vinculado exitosamente al trámite`,
           'success'
         );
+      } else {
+        this.showAlert('No hay documento seleccionado para guardar', 'warning');
       }
 
       // Cerrar el modal
@@ -937,8 +1063,8 @@ class TramiteView extends BaseView {
         modal.hide();
       }
     } catch (error) {
-      console.error('Error al cerrar y guardar documentos:', error);
-      this.showAlert('Error al guardar los documentos pendientes', 'danger');
+      console.error('Error al cerrar y guardar documento:', error);
+      this.showAlert('Error al guardar el documento', 'danger');
     }
   }
 
@@ -978,14 +1104,25 @@ class TramiteView extends BaseView {
       const documentosVinculados = this.obtenerDocumentosVinculados(tramiteId);
       const idsVinculados = documentosVinculados.map(doc => doc.documentoId);
 
-      // Filtrar documentos no vinculados
+      // Obtener documento seleccionado temporalmente
+      const selectedKey = `documento_seleccionado_${tramiteId}`;
+      const documentoSeleccionado = localStorage.getItem(selectedKey);
+      let idDocumentoSeleccionado = null;
+
+      if (documentoSeleccionado) {
+        const documento = JSON.parse(documentoSeleccionado);
+        idDocumentoSeleccionado = documento.id;
+      }
+
+      // Filtrar documentos no vinculados y no seleccionados temporalmente
       const documentosDisponibles = documentosCreados.filter(
-        doc => !idsVinculados.includes(doc.id)
+        doc =>
+          !idsVinculados.includes(doc.id) && doc.id !== idDocumentoSeleccionado
       );
 
       // Limpiar opciones existentes
       selectElement.innerHTML =
-        '<option value="">Seleccione un documento para agregar</option>';
+        '<option value="">Seleccione un documento</option>';
 
       // Agregar opciones
       documentosDisponibles.forEach(documento => {
@@ -1043,15 +1180,34 @@ class TramiteView extends BaseView {
   }
 
   /**
-   * Agrega un documento seleccionado a la lista temporal
-   * @param {Tramite} tramite - Trámite al que se agregará el documento
+   * Selecciona un documento para el trámite
+   * @param {Tramite} tramite - Trámite al que se seleccionará el documento
    */
-  agregarDocumentoSeleccionado(tramite) {
+  seleccionarDocumento(tramite) {
     const selectDocumento = document.getElementById('selectDocumento');
     const documentoId = selectDocumento.value;
 
     if (!documentoId) {
       this.showAlert('Por favor seleccione un documento', 'warning');
+      return;
+    }
+
+    // Validar campos requeridos
+    const areaSolicitante = document.getElementById(
+      'areaSolicitanteDocumentos'
+    ).value;
+    const responsableValidacion = document.getElementById(
+      'responsableValidacionDocumentos'
+    ).value;
+    const seEnviaMatfin = document.querySelector(
+      'input[name="seEnviaMatfinDocumentos"]:checked'
+    )?.value;
+
+    if (!areaSolicitante || !responsableValidacion || !seEnviaMatfin) {
+      this.showAlert(
+        'Por favor complete todos los campos de configuración (Área Solicitante, Responsable de Validación y Se envía a MaTfin)',
+        'warning'
+      );
       return;
     }
 
@@ -1064,56 +1220,147 @@ class TramiteView extends BaseView {
       return;
     }
 
-    // Agregar a la lista temporal de documentos seleccionados
-    this.agregarDocumentoATemporal(documento, tramite.id);
+    // Crear documento con configuración adicional
+    const documentoConConfiguracion = {
+      ...documento,
+      areaSolicitante: areaSolicitante,
+      responsableValidacion: responsableValidacion,
+      seEnviaMatfin: seEnviaMatfin,
+    };
+
+    // Guardar documento seleccionado
+    this.guardarDocumentoSeleccionado(documentoConConfiguracion, tramite.id);
+
+    // Mostrar información del documento seleccionado
+    this.mostrarDocumentoSeleccionado(documentoConConfiguracion);
 
     // Limpiar el select
     selectDocumento.value = '';
 
-    // Recargar la tabla unificada
-    this.cargarDocumentosUnificados(tramite.id);
-
-    // Recargar opciones disponibles
-    this.cargarDocumentosDisponibles(selectDocumento, tramite.id);
-
     this.showAlert(
-      `Documento "${documento.nombreDocumento}" agregado a la lista`,
+      `Documento "${documento.nombreDocumento}" seleccionado exitosamente`,
       'success'
     );
   }
 
   /**
-   * Agrega un documento a la lista temporal
-   * @param {Object} documento - Documento a agregar
+   * Guarda el documento seleccionado para el trámite
+   * @param {Object} documento - Documento seleccionado
    * @param {string} tramiteId - ID del trámite
    */
-  agregarDocumentoATemporal(documento, tramiteId) {
-    // Obtener lista temporal actual
-    const temporalKey = `documentos_temporal_${tramiteId}`;
-    let documentosTemporales = [];
+  guardarDocumentoSeleccionado(documento, tramiteId) {
+    const selectedKey = `documento_seleccionado_${tramiteId}`;
 
     try {
-      const temporal = localStorage.getItem(temporalKey);
-      documentosTemporales = temporal ? JSON.parse(temporal) : [];
+      const documentoConFecha = {
+        ...documento,
+        fechaSeleccion: new Date().toISOString(),
+      };
+
+      localStorage.setItem(selectedKey, JSON.stringify(documentoConFecha));
     } catch (error) {
-      console.error('Error al obtener documentos temporales:', error);
+      console.error('Error al guardar documento seleccionado:', error);
+    }
+  }
+
+  /**
+   * Carga el documento seleccionado para el trámite
+   * @param {string} tramiteId - ID del trámite
+   * @returns {Object|null} Documento seleccionado o null
+   */
+  cargarDocumentoSeleccionado(tramiteId) {
+    const selectedKey = `documento_seleccionado_${tramiteId}`;
+
+    try {
+      const documento = localStorage.getItem(selectedKey);
+      if (documento) {
+        const documentoData = JSON.parse(documento);
+        this.mostrarDocumentoSeleccionado(documentoData);
+        return documentoData;
+      }
+    } catch (error) {
+      console.error('Error al cargar documento seleccionado:', error);
     }
 
-    // Verificar si ya existe
-    const existe = documentosTemporales.some(doc => doc.id === documento.id);
-    if (existe) {
-      this.showAlert('Este documento ya está en la lista', 'warning');
-      return;
+    return null;
+  }
+
+  /**
+   * Muestra la información del documento seleccionado
+   * @param {Object} documento - Documento seleccionado
+   */
+  mostrarDocumentoSeleccionado(documento) {
+    const container = document.getElementById('documentoSeleccionadoContainer');
+    const infoContainer = document.getElementById('documentoSeleccionadoInfo');
+
+    if (!container || !infoContainer) return;
+
+    const html = `
+      <div class="row">
+        <div class="col-md-6">
+          <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
+            documento.nombreDocumento
+          )}</p>
+          <p class="mb-2"><strong>Tipo Documental:</strong> <span class="badge bg-primary">${this.escapeHtml(
+            documento.tipoDocumental
+          )}</span></p>
+          <p class="mb-2"><strong>Descripción:</strong> ${this.escapeHtml(
+            documento.descripcionDocumento || 'Sin descripción'
+          )}</p>
+          <p class="mb-2"><strong>Formato:</strong> <span class="badge bg-info">${this.escapeHtml(
+            documento.tipoFormatoEsperado || 'N/A'
+          )}</span></p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-2"><strong>Área Solicitante:</strong> <span class="badge bg-secondary">${this.escapeHtml(
+            documento.areaSolicitante || 'N/A'
+          )}</span></p>
+          <p class="mb-2"><strong>Responsable:</strong> <span class="badge bg-primary">${this.escapeHtml(
+            documento.responsableValidacion || 'N/A'
+          )}</span></p>
+          <p class="mb-2"><strong>Se envía a MaTfin:</strong> <span class="badge ${
+            documento.seEnviaMatfin === 'Sí' ? 'bg-success' : 'bg-secondary'
+          }">${this.escapeHtml(documento.seEnviaMatfin || 'No')}</span></p>
+          <p class="mb-2"><strong>Tamaño:</strong> <span class="badge bg-warning">${this.escapeHtml(
+            documento.tamanoMaximoPermitido || 'N/A'
+          )}</span></p>
+        </div>
+      </div>
+    `;
+
+    infoContainer.innerHTML = html;
+    container.style.display = 'block';
+  }
+
+  /**
+   * Remueve el documento seleccionado
+   * @param {Tramite} tramite - Trámite asociado
+   */
+  removerDocumentoSeleccionado(tramite) {
+    const selectedKey = `documento_seleccionado_${tramite.id}`;
+
+    try {
+      localStorage.removeItem(selectedKey);
+
+      // Ocultar el contenedor
+      const container = document.getElementById(
+        'documentoSeleccionadoContainer'
+      );
+      if (container) {
+        container.style.display = 'none';
+      }
+
+      // Recargar opciones disponibles
+      const selectDocumento = document.getElementById('selectDocumento');
+      if (selectDocumento) {
+        this.cargarDocumentosDisponibles(selectDocumento, tramite.id);
+      }
+
+      this.showAlert('Documento removido exitosamente', 'success');
+    } catch (error) {
+      console.error('Error al remover documento seleccionado:', error);
+      this.showAlert('Error al remover el documento', 'danger');
     }
-
-    // Agregar a la lista temporal
-    documentosTemporales.push({
-      ...documento,
-      fechaVinculacion: new Date().toISOString(),
-    });
-
-    // Guardar en localStorage
-    localStorage.setItem(temporalKey, JSON.stringify(documentosTemporales));
   }
 
   /**
@@ -1156,7 +1403,11 @@ class TramiteView extends BaseView {
               <th class="text-center">Nombre</th>
               <th class="text-center">Tipo</th>
               <th class="text-center">Descripción</th>
+              <th class="text-center">Área Solicitante</th>
+              <th class="text-center">Responsable</th>
+              <th class="text-center">MaTfin</th>
               <th class="text-center">Formato</th>
+              <th class="text-center">Tamaño</th>
               <th class="text-center">Obligatorio</th>
               <th class="text-center">Acciones</th>
             </tr>
@@ -1196,8 +1447,30 @@ class TramiteView extends BaseView {
           )}</small>
           </td>
           <td class="text-center">
+            <span class="badge bg-secondary">${this.escapeHtml(
+              documento.areaSolicitante || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.responsableValidacion || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${
+              documento.seEnviaMatfin === 'Sí' ? 'bg-success' : 'bg-secondary'
+            }">
+              ${this.escapeHtml(documento.seEnviaMatfin || 'No')}
+            </span>
+          </td>
+          <td class="text-center">
           <span class="badge bg-info">${this.escapeHtml(
             documento.tipoFormatoEsperado || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-warning">${this.escapeHtml(
+            documento.tamanoMaximoPermitido || 'N/A'
           )}</span>
         </td>
         <td class="text-center">
@@ -1438,9 +1711,12 @@ class TramiteView extends BaseView {
                 <th class="text-center">Nombre</th>
                 <th class="text-center">Tipo Documental</th>
                 <th class="text-center">Descripción</th>
+                <th class="text-center">Área Solicitante</th>
+                <th class="text-center">Responsable</th>
+                <th class="text-center">MaTfin</th>
                 <th class="text-center">Formato</th>
+                <th class="text-center">Tamaño</th>
                 <th class="text-center">Obligatorio</th>
-                <th class="text-center">MATFIN</th>
                 <th class="text-center">Campos</th>
                 <th class="text-center">Estado</th>
                 <th class="text-center">Fecha</th>
@@ -1490,8 +1766,30 @@ class TramiteView extends BaseView {
               )}</small>
             </td>
             <td class="text-center">
+              <span class="badge bg-secondary">${this.escapeHtml(
+                documento.areaSolicitante || 'N/A'
+              )}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-primary">${this.escapeHtml(
+                documento.responsableValidacion || 'N/A'
+              )}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge ${
+                documento.seEnviaMatfin === 'Sí' ? 'bg-success' : 'bg-secondary'
+              }">
+                ${this.escapeHtml(documento.seEnviaMatfin || 'No')}
+              </span>
+            </td>
+            <td class="text-center">
               <span class="badge bg-info">${this.escapeHtml(
                 documento.tipoFormatoEsperado || 'N/A'
+              )}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-warning">${this.escapeHtml(
+                documento.tamanoMaximoPermitido || 'N/A'
               )}</span>
             </td>
             <td class="text-center">
@@ -1501,15 +1799,6 @@ class TramiteView extends BaseView {
                   : 'bg-secondary'
               }">
                 ${this.escapeHtml(documento.obligatoriedad || 'No')}
-              </span>
-            </td>
-            <td class="text-center">
-              <span class="badge ${
-                documento.datosRemitenMatfin === 'Sí'
-                  ? 'bg-success'
-                  : 'bg-secondary'
-              }">
-                ${this.escapeHtml(documento.datosRemitenMatfin || 'No')}
               </span>
             </td>
             <td class="text-center">
@@ -1559,7 +1848,11 @@ class TramiteView extends BaseView {
               <th class="text-center">Nombre</th>
               <th class="text-center">Tipo Documental</th>
               <th class="text-center">Descripción</th>
+              <th class="text-center">Área Solicitante</th>
+              <th class="text-center">Responsable</th>
+              <th class="text-center">MaTfin</th>
               <th class="text-center">Formato</th>
+              <th class="text-center">Tamaño</th>
               <th class="text-center">Obligatorio</th>
               <th class="text-center">Fecha Vinculación</th>
             </tr>
@@ -1584,8 +1877,30 @@ class TramiteView extends BaseView {
             )}</small>
           </td>
           <td class="text-center">
+            <span class="badge bg-secondary">${this.escapeHtml(
+              documento.areaSolicitante || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-primary">${this.escapeHtml(
+              documento.responsableValidacion || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge ${
+              documento.seEnviaMatfin === 'Sí' ? 'bg-success' : 'bg-secondary'
+            }">
+              ${this.escapeHtml(documento.seEnviaMatfin || 'No')}
+            </span>
+          </td>
+          <td class="text-center">
             <span class="badge bg-info">${this.escapeHtml(
               documento.tipoFormatoEsperado || 'N/A'
+            )}</span>
+          </td>
+          <td class="text-center">
+            <span class="badge bg-warning">${this.escapeHtml(
+              documento.tamanoMaximoPermitido || 'N/A'
             )}</span>
           </td>
           <td class="text-center">

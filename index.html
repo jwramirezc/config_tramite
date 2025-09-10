@@ -78,66 +78,35 @@
                 </div>
                 <div class="modal-body">
                     <form id="formCrearTramite">
+                        <!-- Código del trámite -->
+                        <div class="mb-3">
+                            <label for="codigoTramite" class="form-label">
+                                <i class="fas fa-hashtag me-1"></i>
+                                Código del Trámite
+                            </label>
+                            <input type="number" class="form-control" id="codigoTramite"
+                                placeholder="Ingrese el código numérico del trámite" required>
+                        </div>
+
                         <!-- Nombre del trámite -->
                         <div class="mb-3">
                             <label for="nombreTramite" class="form-label">
-                                Nombre del trámite/procedimiento
+                                <i class="fas fa-file-alt me-1"></i>
+                                Nombre del Trámite/Procedimiento
                             </label>
-                            <input type="text" class="form-control" id="nombreTramite" required>
+                            <input type="text" class="form-control" id="nombreTramite"
+                                placeholder="Ingrese el nombre del trámite" required>
                         </div>
 
-                        <!-- Periodo Aplicable -->
+                        <!-- Descripción del trámite -->
                         <div class="mb-3">
-                            <label class="form-label">
-                                Periodo Aplicable
+                            <label for="descripcionTramite" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>
+                                Descripción del Trámite
                             </label>
-                            <div class="row">
-                                <div class="col-6">
-                                    <select class="form-select" id="periodoAnio" required>
-                                        <option value="">Año</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                        <option value="2027">2027</option>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <select class="form-select" id="periodoSemestre" required>
-                                        <option value="">Semestre</option>
-                                        <option value="I">I</option>
-                                        <option value="II">II</option>
-                                        <option value="III">III</option>
-                                        <option value="IV">IV</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <textarea class="form-control" id="descripcionTramite" rows="3"
+                                placeholder="Ingrese una descripción detallada del trámite" required></textarea>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="sede" class="form-label">
-                                Sede
-                            </label>
-                            <select class="form-select" id="sede" required>
-                                <option value="">Seleccione sede</option>
-                                <option value="Principal">Principal</option>
-                                <option value="Norte">Norte</option>
-                                <option value="Sur">Sur</option>
-                                <option value="Este">Este</option>
-                                <option value="Oeste">Oeste</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="jornada" class="form-label">
-                                Jornada
-                            </label>
-                            <select class="form-select" id="jornada" required>
-                                <option value="">Seleccione jornada</option>
-                                <option value="Diurna">Diurna</option>
-                                <option value="Nocturna">Nocturna</option>
-                            </select>
-                        </div>
-
 
                     </form>
                 </div>

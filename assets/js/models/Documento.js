@@ -25,12 +25,15 @@ class Documento {
     // Nuevos campos para el formulario "Crear Documento"
     this.nombreDocumento = data.nombreDocumento || '';
     this.descripcionDocumento = data.descripcionDocumento || '';
+    this.areaSolicitante = data.areaSolicitante || '';
+    this.responsableValidacion = data.responsableValidacion || '';
+    this.seEnviaMatfin = data.seEnviaMatfin || 'No';
     this.tipoFormatoEsperado = data.tipoFormatoEsperado || '';
+    this.tamanoMaximoPermitido = data.tamanoMaximoPermitido || '';
     this.obligatoriedad = data.obligatoriedad || 'No';
     this.requiereAprobacion = data.requiereAprobacion || 'No';
     this.vigenciaEnDias = data.vigenciaEnDias || 0;
     this.permitePlazosAmpliados = data.permitePlazosAmpliados || 'No';
-    this.datosRemitenMatfin = data.datosRemitenMatfin || 'No';
   }
 
   /**
@@ -453,12 +456,15 @@ class Documento {
       nombreDocumento: formData.nombreDocumento,
       tipoDocumental: formData.tipoDocumental,
       descripcionDocumento: formData.descripcionDocumento,
+      areaSolicitante: formData.areaSolicitante,
+      responsableValidacion: formData.responsableValidacion,
+      seEnviaMatfin: formData.seEnviaMatfin,
       tipoFormatoEsperado: formData.tipoFormatoEsperado,
+      tamanoMaximoPermitido: formData.tamanoMaximoPermitido,
       obligatoriedad: formData.obligatoriedad,
       requiereAprobacion: formData.requiereAprobacion,
       vigenciaEnDias: parseInt(formData.vigenciaEnDias) || 0,
       permitePlazosAmpliados: formData.permitePlazosAmpliados,
-      datosRemitenMatfin: formData.datosRemitenMatfin,
       estado: 'activo',
       version: '1.0',
       tags: [],

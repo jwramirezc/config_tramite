@@ -266,11 +266,9 @@ class TramiteController extends BaseController {
    */
   validateFormData(formData) {
     const requiredFields = [
+      'codigoTramite',
       'nombreTramite',
-      'periodoAnio',
-      'periodoSemestre',
-      'sede',
-      'jornada',
+      'descripcionTramite',
     ];
 
     const missingFields = requiredFields.filter(

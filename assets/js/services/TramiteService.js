@@ -80,38 +80,13 @@ class TramiteService extends BaseService {
   }
 
   /**
-   * Obtiene trámites por sede
-   * @param {string} sede - Sede a filtrar
-   * @returns {Array} Array de trámites de la sede
+   * Obtiene trámites por código
+   * @param {string} codigo - Código a filtrar
+   * @returns {Array} Array de trámites con el código
    */
-  getBySede(sede) {
+  getByCodigo(codigo) {
     this.validateInitialization();
-    return this.items.filter(tramite => tramite.sede === sede);
-  }
-
-  /**
-   * Obtiene trámites por jornada
-   * @param {string} jornada - Jornada a filtrar
-   * @returns {Array} Array de trámites de la jornada
-   */
-  getByJornada(jornada) {
-    this.validateInitialization();
-    return this.items.filter(tramite => tramite.jornada === jornada);
-  }
-
-  /**
-   * Obtiene trámites por periodo
-   * @param {string} periodoAnio - Año del periodo
-   * @param {string} periodoSemestre - Semestre del periodo
-   * @returns {Array} Array de trámites del periodo
-   */
-  getByPeriodo(periodoAnio, periodoSemestre) {
-    this.validateInitialization();
-    return this.items.filter(
-      tramite =>
-        tramite.periodoAnio === periodoAnio &&
-        tramite.periodoSemestre === periodoSemestre
-    );
+    return this.items.filter(tramite => tramite.codigo === codigo);
   }
 
   /**
@@ -194,8 +169,8 @@ class TramiteService extends BaseService {
     return this.items.filter(tramite => {
       return (
         tramite.nombre.toLowerCase().includes(searchLower) ||
-        tramite.sede.toLowerCase().includes(searchLower) ||
-        tramite.jornada.toLowerCase().includes(searchLower) ||
+        tramite.codigo.toLowerCase().includes(searchLower) ||
+        tramite.descripcion.toLowerCase().includes(searchLower) ||
         tramite.observaciones.toLowerCase().includes(searchLower)
       );
     });
@@ -214,25 +189,11 @@ class TramiteService extends BaseService {
     const finalizados = this.getByEstado('finalizado').length;
     const enSubsanacion = this.getEnSubsanacion().length;
 
-    // Estadísticas por sede
-    const sedesStats = {};
-    const sedes = [...new Set(this.items.map(t => t.sede))];
-    sedes.forEach(sede => {
-      sedesStats[sede] = this.getBySede(sede).length;
-    });
-
-    // Estadísticas por jornada
-    const jornadasStats = {};
-    const jornadas = [...new Set(this.items.map(t => t.jornada))];
-    jornadas.forEach(jornada => {
-      jornadasStats[jornada] = this.getByJornada(jornada).length;
-    });
-
-    // Estadísticas por periodo
-    const periodosStats = {};
-    this.items.forEach(tramite => {
-      const periodo = `${tramite.periodoAnio}-${tramite.periodoSemestre}`;
-      periodosStats[periodo] = (periodosStats[periodo] || 0) + 1;
+    // Estadísticas por código
+    const codigosStats = {};
+    const codigos = [...new Set(this.items.map(t => t.codigo))];
+    codigos.forEach(codigo => {
+      codigosStats[codigo] = this.getByCodigo(codigo).length;
     });
 
     return {
@@ -241,9 +202,7 @@ class TramiteService extends BaseService {
       pendientes,
       finalizados,
       enSubsanacion,
-      sedes: sedesStats,
-      jornadas: jornadasStats,
-      periodos: periodosStats,
+      codigos: codigosStats,
     };
   }
 
@@ -257,8 +216,14 @@ class TramiteService extends BaseService {
       this.validateInitialization();
 
       const sampleTramites = [];
-      const sedes = ['Principal', 'Norte', 'Sur'];
-      const jornadas = ['Diurna', 'Nocturna'];
+      const codigos = ['001', '002', '003', '004', '005'];
+      const descripciones = [
+        'Trámite académico para estudiantes',
+        'Proceso administrativo general',
+        'Solicitud de certificados',
+        'Registro de documentos',
+        'Gestión de matrículas',
+      ];
 
       for (let i = 1; i <= count; i++) {
         const fechaInicio = new Date();
@@ -274,13 +239,10 @@ class TramiteService extends BaseService {
         fechaFinSub.setDate(fechaFinSub.getDate() + 15);
 
         const tramite = new Tramite({
+          codigo: codigos[Math.floor(Math.random() * codigos.length)],
           nombre: `Trámite de Ejemplo ${i}`,
-          periodoAnio: '2024',
-          periodoSemestre: ['I', 'II', 'III', 'IV'][
-            Math.floor(Math.random() * 4)
-          ],
-          sede: sedes[Math.floor(Math.random() * sedes.length)],
-          jornada: jornadas[Math.floor(Math.random() * jornadas.length)],
+          descripcion:
+            descripciones[Math.floor(Math.random() * descripciones.length)],
           fechaInicio: fechaInicio.toISOString().split('T')[0],
           fechaFinalizacion: fechaFin.toISOString().split('T')[0],
           fechaInicioSubsanacion: fechaInicioSub.toISOString().split('T')[0],
