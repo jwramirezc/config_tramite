@@ -83,7 +83,6 @@ class TramiteView extends BaseView {
                             <th class="text-center">Código</th>
                             <th class="text-center">Nombre</th>
                             <th class="text-center">Descripción</th>
-                            <th class="text-center">Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -107,9 +106,6 @@ class TramiteView extends BaseView {
    * @returns {string} HTML de la fila
    */
   renderTableRow(tramite) {
-    const estadoClass = this.getEstadoClass(tramite.estado);
-    const estadoIcon = this.getEstadoIcon(tramite.estado);
-
     return `
             <tr data-tramite-id="${tramite.id}">
                 <td class="text-center">
@@ -124,12 +120,6 @@ class TramiteView extends BaseView {
                     <small class="text-muted">${this.escapeHtml(
                       tramite.descripcion || 'Sin descripción'
                     )}</small>
-                </td>
-                <td class="text-center">
-                    <span class="status-badge ${estadoClass}">
-                        <i class="${estadoIcon} me-1"></i>
-                        ${this.getEstadoText(tramite.estado)}
-                    </span>
                 </td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-action btn-opciones" 
@@ -524,7 +514,7 @@ class TramiteView extends BaseView {
         tramiteId,
         callback: tramite => {
           if (tramite) {
-            this.actualizarTextoBotonActivarInactivar(tramite);
+            // Trámite actualizado
           }
         },
       });
@@ -685,52 +675,6 @@ class TramiteView extends BaseView {
    */
   refreshHistorialFechas(tramite) {
     this.renderHistorialFechas(tramite);
-  }
-
-  /**
-   * Actualiza el texto del botón Activar/Inactivar según el estado del trámite
-   * @param {Tramite} tramite - Trámite para obtener su estado
-   */
-  actualizarTextoBotonActivarInactivar(tramite) {
-    const textoElement = document.getElementById('textoActivarInactivar');
-    const iconElement = document.querySelector('#btnActivarInactivarTramite i');
-    const botonElement = document.getElementById('btnActivarInactivarTramite');
-
-    if (textoElement && iconElement && botonElement) {
-      const estado = tramite.estado;
-
-      // Solo permitir activar/inactivar manualmente si el estado es 'activo' o 'inactivo'
-      if (estado === 'activo' || estado === 'inactivo') {
-        botonElement.disabled = false;
-        botonElement.classList.remove('text-muted');
-
-        if (estado === 'inactivo') {
-          textoElement.textContent = 'Activar Trámite';
-          iconElement.className = 'fas fa-play me-2';
-        } else {
-          textoElement.textContent = 'Inactivar Trámite';
-          iconElement.className = 'fas fa-pause me-2';
-        }
-      } else {
-        // Deshabilitar el botón si el estado no permite cambio manual
-        botonElement.disabled = true;
-        botonElement.classList.add('text-muted');
-
-        // Caso especial para trámites sin fechas
-        if (estado === 'sin_fechas') {
-          textoElement.textContent = 'Inactivar trámite';
-          iconElement.className = 'fas fa-ban me-2';
-        } else {
-          // Mostrar el estado actual para otros estados
-          const estadoText = this.getEstadoText(estado);
-          textoElement.textContent = `${estadoText} (Automático)`;
-
-          // Icono según el estado
-          const estadoIcon = this.getEstadoIcon(estado);
-          iconElement.className = `${estadoIcon} me-2`;
-        }
-      }
-    }
   }
 
   /**
@@ -2704,9 +2648,6 @@ class TramiteView extends BaseView {
                   estado
                 )}`;
               }
-
-              // Actualizar el botón de activar/inactivar
-              this.actualizarTextoBotonActivarInactivar(tramite);
 
               // Actualizar las fechas mostradas
               this.actualizarFechasEnModal(tramite);

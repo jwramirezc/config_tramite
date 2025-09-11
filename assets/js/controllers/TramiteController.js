@@ -78,20 +78,6 @@ class TramiteController extends BaseController {
       btnVerDocumentos.addEventListener('click', () => this.verDocumentos());
     }
 
-    const btnActivarInactivarTramite = document.getElementById(
-      'btnActivarInactivarTramite'
-    );
-    if (btnActivarInactivarTramite) {
-      btnActivarInactivarTramite.addEventListener('click', () =>
-        this.activarInactivarTramite()
-      );
-    }
-
-    const btnEliminarTramite = document.getElementById('btnEliminarTramite');
-    if (btnEliminarTramite) {
-      btnEliminarTramite.addEventListener('click', () => this.deleteTramite());
-    }
-
     // Event listeners para el formulario
     const form = document.getElementById('formCrearTramite');
     if (form) {
@@ -401,7 +387,6 @@ class TramiteController extends BaseController {
       const usuario = 'Usuario'; // En un sistema real, esto vendría del contexto de autenticación
       tramite.agregarFechas(fechas, usuario);
 
-
       // Actualizar en el servicio - pasar solo los campos necesarios
       const updateData = {
         fechaInicio: tramite.fechaInicio,
@@ -485,48 +470,6 @@ class TramiteController extends BaseController {
   }
 
   /**
-   * Elimina un trámite
-   */
-  deleteTramite() {
-    try {
-      if (!this.currentTramiteId) {
-        this.tramiteView.showAlert(
-          'No se ha seleccionado ningún trámite',
-          'warning'
-        );
-        return;
-      }
-
-      const tramite = this.tramiteService.getById(this.currentTramiteId);
-      if (!tramite) {
-        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
-        return;
-      }
-
-      this.tramiteView.hideOpcionesModal();
-
-      this.tramiteView.showConfirmModal(
-        'Eliminar Trámite',
-        `¿Está seguro de que desea eliminar el trámite "${tramite.nombre}"? Esta acción no se puede deshacer.`,
-        () => {
-          const result = this.tramiteService.delete(this.currentTramiteId);
-          if (result.success) {
-            this.tramiteView.showAlert(result.message, 'success');
-            this.loadTramites();
-          } else {
-            this.tramiteView.showAlert(result.errors.join(', '), 'danger');
-          }
-        },
-        'Eliminar',
-        'Cancelar'
-      );
-    } catch (error) {
-      console.error('Error al eliminar trámite:', error);
-      this.tramiteView.showAlert('Error al eliminar el trámite', 'danger');
-    }
-  }
-
-  /**
    * Añade documentos a un trámite
    */
   anadirDocumentos() {
@@ -581,97 +524,6 @@ class TramiteController extends BaseController {
       console.error('Error al abrir modal de ver documentos:', error);
       this.tramiteView.showAlert(
         'Error al abrir el modal de ver documentos',
-        'danger'
-      );
-    }
-  }
-
-  /**
-   * Activa o inactiva un trámite manualmente
-   */
-  activarInactivarTramite() {
-    try {
-      if (!this.currentTramiteId) {
-        this.tramiteView.showAlert(
-          'No se ha seleccionado ningún trámite',
-          'warning'
-        );
-        return;
-      }
-
-      const tramite = this.tramiteService.getById(this.currentTramiteId);
-      if (!tramite) {
-        this.tramiteView.showAlert('Trámite no encontrado', 'danger');
-        return;
-      }
-
-      const estadoActual = tramite.getEstadoPorFechas();
-
-      // Solo permitir activar/inactivar manualmente si el estado automático es 'activo' o 'inactivo'
-      if (estadoActual !== 'activo' && estadoActual !== 'inactivo') {
-        this.tramiteView.showAlert(
-          `No se puede cambiar manualmente el estado. El trámite está actualmente en estado: ${estadoActual}`,
-          'warning'
-        );
-        return;
-      }
-
-      const nuevoEstado = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
-      const accion = nuevoEstado === 'activo' ? 'activar' : 'inactivar';
-
-      this.tramiteView.hideOpcionesModal();
-
-      this.tramiteView.showConfirmModal(
-        `${accion.charAt(0).toUpperCase() + accion.slice(1)} Trámite`,
-        `¿Está seguro de que desea ${accion} manualmente el trámite "${tramite.nombre}"?`,
-        async () => {
-          try {
-            // Obtener el trámite actualizado
-            const tramite = this.tramiteService.getById(this.currentTramiteId);
-            if (tramite) {
-              // Cambiar el estado usando el método del modelo
-              tramite.setEstado(
-                nuevoEstado,
-                'Usuario',
-                `${accion} manual del trámite`
-              );
-            }
-
-            const result = await this.tramiteService.update(
-              this.currentTramiteId,
-              {
-                estado: nuevoEstado,
-              }
-            );
-            if (result.success) {
-              // Construir el mensaje correctamente
-              const mensaje =
-                nuevoEstado === 'activo'
-                  ? 'Trámite activado manualmente exitosamente'
-                  : 'Trámite inactivado manualmente exitosamente';
-
-              this.tramiteView.showAlert(mensaje, 'success');
-              await this.loadTramites();
-              // Actualizar la vista del modal de opciones
-              this.tramiteView.refreshOpcionesModal(this.currentTramiteId);
-            } else {
-              this.tramiteView.showAlert(result.errors.join(', '), 'danger');
-            }
-          } catch (error) {
-            console.error('Error al cambiar estado del trámite:', error);
-            this.tramiteView.showAlert(
-              'Error interno al cambiar el estado del trámite',
-              'danger'
-            );
-          }
-        },
-        accion.charAt(0).toUpperCase() + accion.slice(1),
-        'Cancelar'
-      );
-    } catch (error) {
-      console.error('Error al cambiar estado del trámite:', error);
-      this.tramiteView.showAlert(
-        'Error al cambiar el estado del trámite',
         'danger'
       );
     }

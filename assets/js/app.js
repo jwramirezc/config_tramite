@@ -201,10 +201,6 @@ class TramiteApp {
       this.handleTramiteUpdated(data);
     });
 
-    this.eventManager.on('tramite:deleted', data => {
-      this.handleTramiteDeleted(data);
-    });
-
     // Eventos de documentos
     this.eventManager.on('documento:created', data => {
       this.handleDocumentoCreated(data);
@@ -378,18 +374,6 @@ class TramiteApp {
    */
   handleTramiteUpdated(data) {
     this.showSuccess('Trámite actualizado exitosamente');
-
-    // Actualizar vista si es necesario
-    if (this.tramiteView) {
-      this.tramiteView.refreshList();
-    }
-  }
-
-  /**
-   * Maneja eventos de trámites eliminados
-   */
-  handleTramiteDeleted(data) {
-    this.showSuccess('Trámite eliminado exitosamente');
 
     // Actualizar vista si es necesario
     if (this.tramiteView) {
