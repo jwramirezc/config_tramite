@@ -86,7 +86,6 @@ class BaseController {
     if (this.view && typeof this.view.showAlert === 'function') {
       this.view.showAlert(message, 'success');
     } else {
-      console.log(`✅ ${message}`);
     }
   }
 
@@ -122,6 +121,5 @@ class BaseController {
       this.eventManager.removeAllListeners();
     }
     this.isInitialized = false;
-    console.log(`🧹 ${this.constructor.name} limpiado`);
   }
 }

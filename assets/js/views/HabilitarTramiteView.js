@@ -16,7 +16,6 @@ class HabilitarTramiteView extends BaseView {
     await super.initialize();
     this.setupCommonElements();
     this.setupEventListeners();
-    console.log('✅ HabilitarTramiteView inicializada');
   }
 
   /**
@@ -24,7 +23,6 @@ class HabilitarTramiteView extends BaseView {
    */
   setupCommonElements() {
     // Implementación requerida por BaseView
-    console.log('🔧 Configurando elementos comunes de HabilitarTramiteView');
   }
 
   /**
@@ -70,19 +68,15 @@ class HabilitarTramiteView extends BaseView {
     const modalElement = document.getElementById(this.modalId);
     if (modalElement) {
       modalElement.addEventListener('hidden.bs.modal', () => {
-        console.log('🔧 Modal cerrado completamente, limpiando estado...');
         this.limpiarEstadoVisual();
       });
     }
-
-    console.log('✅ Event listeners configurados en HabilitarTramiteView');
   }
 
   /**
    * Muestra el modal de habilitar trámites
    */
   showModal() {
-    console.log('🔧 Mostrando modal de habilitar trámites');
     this.cargarTramites();
     this.cargarPeriodosAcademicos();
     this.cargarSedes();
@@ -96,10 +90,8 @@ class HabilitarTramiteView extends BaseView {
    * Oculta el modal
    */
   hideModal() {
-    console.log('🔧 Intentando cerrar modal:', this.modalId);
     const modalElement = document.getElementById(this.modalId);
     if (modalElement) {
-      console.log('✅ Elemento modal encontrado');
       const modal =
         bootstrap.Modal.getInstance(modalElement) ||
         new bootstrap.Modal(modalElement);
@@ -109,7 +101,6 @@ class HabilitarTramiteView extends BaseView {
 
       // Cerrar el modal
       modal.hide();
-      console.log('✅ Modal cerrado');
 
       // Limpiar el estado visual después de un breve delay
       setTimeout(() => {
@@ -124,8 +115,6 @@ class HabilitarTramiteView extends BaseView {
    * Limpia el estado visual del modal
    */
   limpiarEstadoVisual() {
-    console.log('🧹 Limpiando estado visual del modal');
-
     // Remover clases de backdrop si existen
     const backdrops = document.querySelectorAll('.modal-backdrop');
     backdrops.forEach(backdrop => backdrop.remove());
@@ -142,8 +131,6 @@ class HabilitarTramiteView extends BaseView {
     if (alertContainer) {
       alertContainer.innerHTML = '';
     }
-
-    console.log('✅ Estado visual limpiado');
   }
 
   /**
@@ -169,7 +156,6 @@ class HabilitarTramiteView extends BaseView {
           option.dataset.nombre = tramite.nombre;
           tramiteSelect.appendChild(option);
         });
-        console.log(`✅ Trámites cargados en el selector: ${tramites.length}`);
       } catch (error) {
         console.error('❌ Error al cargar trámites:', error);
       }
@@ -228,19 +214,12 @@ class HabilitarTramiteView extends BaseView {
    * Maneja el envío del formulario
    */
   handleFormSubmit() {
-    console.log('🔧 Procesando envío del formulario');
-
     const formData = this.getFormData();
-    console.log('📋 Datos del formulario obtenidos:', formData);
-
     const validation = this.validateForm(formData);
-    console.log('✅ Validación del formulario:', validation);
 
     if (validation.isValid) {
-      console.log('📡 Emitiendo evento habilitarTramite:guardar');
       this.emitEvent('habilitarTramite:guardar', formData);
     } else {
-      console.log('❌ Validación fallida:', validation.errors);
       this.mostrarErrores(validation.errors);
     }
   }
@@ -375,21 +354,15 @@ class HabilitarTramiteView extends BaseView {
    * @param {Object} data - Datos del evento
    */
   emitEvent(eventName, data) {
-    console.log(`📡 Intentando emitir evento: ${eventName}`);
-    console.log(`📡 Datos del evento:`, data);
-
     if (window.eventManager) {
-      console.log('✅ EventManager encontrado, emitiendo evento...');
       window.eventManager.emit(eventName, data);
     } else {
       console.error(
         '❌ EventManager no está disponible en window.eventManager'
       );
-      console.log('🔍 window.eventManager:', window.eventManager);
 
       // Intentar llamar directamente al controlador como fallback
       if (window.habilitarTramiteController) {
-        console.log('🔄 Intentando llamar directamente al controlador...');
         window.habilitarTramiteController.guardarHabilitarTramite(data);
       } else {
         console.error('❌ Controlador tampoco está disponible');

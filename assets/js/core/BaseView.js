@@ -530,6 +530,5 @@ class BaseView {
     this.destroyTooltips();
     this.modals.clear();
     this.isInitialized = false;
-    console.log(`🧹 ${this.constructor.name} limpiada`);
   }
 }

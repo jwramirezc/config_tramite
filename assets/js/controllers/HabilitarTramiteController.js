@@ -15,27 +15,15 @@ class HabilitarTramiteController {
    * @param {EventManager} eventManager - Gestor de eventos
    */
   initialize(habilitarTramiteService, eventManager) {
-    console.log('🔧 Inicializando HabilitarTramiteController...');
-    console.log(
-      '🔧 habilitarTramiteService recibido:',
-      habilitarTramiteService
-    );
-    console.log('🔧 eventManager recibido:', eventManager);
-
     this.habilitarTramiteService = habilitarTramiteService;
     this.eventManager = eventManager;
     this.setupEventListeners();
-    console.log('✅ HabilitarTramiteController inicializado correctamente');
   }
 
   /**
    * Configura los event listeners
    */
   setupEventListeners() {
-    console.log(
-      '🔧 Configurando event listeners en HabilitarTramiteController...'
-    );
-
     // Event listener para el botón de habilitar trámites
     const btnHabilitarTramites = document.getElementById(
       'btnHabilitarTramites'
@@ -44,23 +32,13 @@ class HabilitarTramiteController {
       btnHabilitarTramites.addEventListener('click', () => {
         this.mostrarModal();
       });
-      console.log(
-        '✅ Event listener para botón habilitar trámites configurado'
-      );
     }
 
     // Event listener para guardar trámite habilitado
     if (this.eventManager) {
       this.eventManager.on('habilitarTramite:guardar', async data => {
-        console.log(
-          '📨 Evento habilitarTramite:guardar recibido en el controlador:',
-          data
-        );
         await this.guardarHabilitarTramite(data);
       });
-      console.log(
-        '✅ Event listener habilitarTramite:guardar configurado en el controlador'
-      );
     } else {
       console.error(
         '❌ EventManager no disponible para configurar event listeners'
@@ -72,9 +50,6 @@ class HabilitarTramiteController {
    * Muestra el modal de habilitar trámites
    */
   mostrarModal() {
-    console.log(
-      '🔧 Mostrando modal de habilitar trámites desde el controlador'
-    );
     if (this.habilitarTramiteView) {
       this.habilitarTramiteView.showModal();
     } else {
@@ -87,9 +62,6 @@ class HabilitarTramiteController {
    * @param {Object} formData - Datos del formulario
    */
   async guardarHabilitarTramite(formData) {
-    console.log('🔧 Iniciando proceso de guardado de trámite habilitado');
-    console.log('📋 Datos recibidos:', formData);
-
     try {
       if (!this.habilitarTramiteService) {
         console.error('❌ HabilitarTramiteService no está disponible');
@@ -97,22 +69,7 @@ class HabilitarTramiteController {
       }
 
       // Crear el trámite habilitado
-      console.log('📝 Creando trámite habilitado...');
-      console.log(
-        '🔗 Datos de relación - tramiteId:',
-        formData.tramiteId,
-        'tramiteNombre:',
-        formData.tramiteNombre
-      );
-
-      console.log('🔧 Llamando a habilitarTramiteService.create()...');
       const result = await this.habilitarTramiteService.create(formData);
-      console.log('📝 Resultado del guardado:', result);
-      console.log('📝 Tipo de resultado:', typeof result);
-      console.log(
-        '📝 result es null/undefined:',
-        result === null || result === undefined
-      );
 
       if (!result) {
         console.error('❌ Result es undefined o null');
@@ -124,23 +81,14 @@ class HabilitarTramiteController {
       }
 
       if (result.success && result.item) {
-        console.log('✅ ID único generado:', result.item.id);
-        console.log(
-          '🔗 Relación guardada - tramiteId:',
-          result.item.tramiteId,
-          'tramiteNombre:',
-          result.item.tramiteNombre
-        );
+        // ID único generado y relación guardada
       }
 
       if (result.success) {
         this.habilitarTramiteView.mostrarExito(
           'Trámite habilitado guardado exitosamente'
         );
-        console.log('✅ Trámite habilitado guardado exitosamente');
-
         // Cerrar el modal después del éxito
-        console.log('🔧 Cerrando modal...');
         this.habilitarTramiteView.hideModal();
 
         // Verificar que se guardó en localStorage
@@ -234,15 +182,10 @@ class HabilitarTramiteController {
 
     // Verificar directamente en localStorage
     const localStorageData = localStorage.getItem('habilitar_tramites');
-    console.log(
-      '🔍 Datos en localStorage (habilitar_tramites):',
-      localStorageData
-    );
 
     if (localStorageData) {
       try {
         const parsedData = JSON.parse(localStorageData);
-        console.log('🔍 Datos parseados:', parsedData);
       } catch (error) {
         console.error('❌ Error al parsear datos de localStorage:', error);
       }
@@ -259,7 +202,6 @@ class HabilitarTramiteController {
         HabilitarTramite.verificarTramiteExiste(item.tramiteId) !== null,
     }));
 
-    console.log('🔍 Relaciones verificadas:', relaciones);
     return relaciones;
   }
 
@@ -300,15 +242,10 @@ class HabilitarTramiteController {
       fechaFinCorreccion: '2025-02-23',
     };
 
-    console.log('🧪 Creando trámite habilitado de prueba...');
-    console.log('🧪 Datos de prueba:', datosPrueba);
-
     try {
       const result = await this.habilitarTramiteService.create(datosPrueba);
-      console.log('🧪 Resultado:', result);
 
       if (result.success) {
-        console.log('✅ Trámite habilitado de prueba creado exitosamente');
         this.verificarRelaciones();
       } else {
         console.error(
@@ -328,8 +265,6 @@ class HabilitarTramiteController {
    * Limpia los recursos del controlador
    */
   cleanup() {
-    console.log('🧹 Limpiando HabilitarTramiteController...');
-
     if (this.eventManager) {
       this.eventManager.off('habilitarTramite:guardar');
     }
@@ -337,7 +272,5 @@ class HabilitarTramiteController {
     this.habilitarTramiteService = null;
     this.habilitarTramiteView = null;
     this.eventManager = null;
-
-    console.log('✅ HabilitarTramiteController limpiado');
   }
 }

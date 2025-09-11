@@ -504,26 +504,9 @@ class DocumentoService extends BaseService {
         };
       }
 
-      // Debug: Log para verificar el documento antes de guardar
-      console.log('💾 Documento a guardar en localStorage:', documento);
-      console.log(
-        '📏 tamanoMaximoPermitido antes de guardar:',
-        documento.tamanoMaximoPermitido
-      );
-
       // Agregar el documento
       this.items.push(documento);
       await this.saveToStorage();
-
-      // Debug: Log para verificar que se guardó correctamente
-      console.log(
-        '✅ Documento guardado. Total de documentos:',
-        this.items.length
-      );
-      console.log(
-        '📄 Último documento guardado:',
-        this.items[this.items.length - 1]
-      );
 
       // Guardar campos del documento si existen
       if (camposDocumento && camposDocumento.length > 0) {

@@ -519,19 +519,13 @@ class DocumentoView extends BaseView {
    * Configura los eventos del modal de crear documento
    */
   setupCrearDocumentoModalEvents() {
-    console.log('🔧 Configurando eventos del modal crear documento...');
     const btnGuardarDocumento = document.getElementById('btnGuardarDocumento');
     const form = document.getElementById('formCrearDocumento');
 
-    console.log('🔍 Botón guardar encontrado:', btnGuardarDocumento);
-    console.log('🔍 Formulario encontrado:', form);
-
     if (btnGuardarDocumento) {
       btnGuardarDocumento.addEventListener('click', () => {
-        console.log('🖱️ Clic en botón Guardar Documento');
         this.guardarDocumento();
       });
-      console.log('✅ Event listener agregado al botón Guardar Documento');
     } else {
       console.error('❌ Botón Guardar Documento no encontrado');
     }
@@ -541,11 +535,9 @@ class DocumentoView extends BaseView {
 
     if (form) {
       form.addEventListener('submit', e => {
-        console.log('📝 Submit del formulario');
         e.preventDefault();
         this.guardarDocumento();
       });
-      console.log('✅ Event listener agregado al formulario');
     } else {
       console.error('❌ Formulario no encontrado');
     }
@@ -555,14 +547,12 @@ class DocumentoView extends BaseView {
    * Guarda el documento desde el formulario
    */
   guardarDocumento() {
-    console.log('🔍 Método guardarDocumento llamado');
     const form = document.getElementById('formCrearDocumento');
     if (!form) {
       console.error('❌ Formulario no encontrado');
       this.showAlert('Error: Formulario no encontrado', 'danger');
       return;
     }
-    console.log('✅ Formulario encontrado');
 
     // Obtener datos del formulario
     const formData = {
@@ -580,9 +570,6 @@ class DocumentoView extends BaseView {
       tamanoMaximoPermitido: (() => {
         const campo = document.getElementById('tamanoMaximoPermitido');
         const valor = campo ? campo.value.trim() : '';
-        console.log('🔍 Campo tamanoMaximoPermitido encontrado:', !!campo);
-        console.log('🔍 Valor capturado del campo:', valor);
-        console.log('🔍 Tipo del valor:', typeof valor);
         return valor;
       })(),
       obligatoriedad: document.querySelector(
@@ -646,21 +633,13 @@ class DocumentoView extends BaseView {
       return;
     }
 
-    // Debug: Log para verificar los datos capturados
-    console.log('📋 Datos del formulario capturados:', formData);
-    console.log('📏 Tamaño máximo permitido:', formData.tamanoMaximoPermitido);
-
     // Emitir evento para guardar el documento
-    console.log('📡 Emitiendo evento documento:createFromForm');
     if (window.tramiteApp && window.tramiteApp.eventManager) {
-      console.log('✅ EventManager encontrado, emitiendo evento');
       window.tramiteApp.eventManager.emit('documento:createFromForm', {
         formData,
         camposDocumento: this.camposTemporales || [],
         callback: result => {
-          console.log('📨 Callback recibido:', result);
           if (result.success) {
-            console.log('✅ Documento guardado exitosamente');
             this.showAlert(result.message, 'success');
             // Limpiar campos temporales
             this.camposTemporales = [];
@@ -672,7 +651,6 @@ class DocumentoView extends BaseView {
               modal.hide();
             }
           } else {
-            console.log('❌ Error al guardar documento:', result.errors);
             this.showAlert(result.errors.join(', '), 'danger');
           }
         },
@@ -711,17 +689,14 @@ class DocumentoView extends BaseView {
    * @param {string} type - Tipo de alerta (success, danger, warning, info)
    */
   showAlert(message, type = 'info') {
-    console.log(`📢 Mostrando alerta: ${message} (tipo: ${type})`);
     // Usar el método de alerta de TramiteView si está disponible
     if (
       window.tramiteApp &&
       window.tramiteApp.tramiteView &&
       window.tramiteApp.tramiteView.showAlert
     ) {
-      console.log('✅ Usando TramiteView.showAlert');
       window.tramiteApp.tramiteView.showAlert(message, type);
     } else {
-      console.log('⚠️ Usando alert() como fallback');
       // Fallback: mostrar alerta simple
       alert(message);
     }

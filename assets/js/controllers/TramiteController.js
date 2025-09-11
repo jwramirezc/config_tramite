@@ -401,10 +401,6 @@ class TramiteController extends BaseController {
       const usuario = 'Usuario'; // En un sistema real, esto vendría del contexto de autenticación
       tramite.agregarFechas(fechas, usuario);
 
-      console.log(
-        '📊 Historial de fechas del trámite:',
-        tramite.historialFechas
-      );
 
       // Actualizar en el servicio - pasar solo los campos necesarios
       const updateData = {

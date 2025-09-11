@@ -98,35 +98,7 @@ class BaseService {
         this.prepareDataForStorage(item)
       );
 
-      // Debug: Log para verificar qué se está guardando
-      console.log(
-        `💾 Guardando ${this.entityName}s en localStorage:`,
-        this.storageKey
-      );
-      console.log(`💾 Datos a guardar:`, dataToSave);
-      if (dataToSave.length > 0) {
-        console.log(
-          `💾 Último item guardado:`,
-          dataToSave[dataToSave.length - 1]
-        );
-        if (
-          dataToSave[dataToSave.length - 1].tamanoMaximoPermitido !== undefined
-        ) {
-          console.log(
-            `💾 tamanoMaximoPermitido del último item:`,
-            dataToSave[dataToSave.length - 1].tamanoMaximoPermitido
-          );
-        }
-      }
-
       localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
-
-      // Debug: Verificar que se guardó correctamente
-      const savedData = localStorage.getItem(this.storageKey);
-      console.log(
-        `💾 Datos guardados en localStorage:`,
-        savedData ? JSON.parse(savedData) : null
-      );
     } catch (error) {
       console.error(
         `❌ Error al guardar ${this.entityName}s en almacenamiento:`,
@@ -147,15 +119,6 @@ class BaseService {
       preparedItem = item.toJSON();
     } else {
       preparedItem = item;
-    }
-
-    // Debug: Log para verificar el item preparado
-    console.log(`🔧 Preparando item para almacenamiento:`, preparedItem);
-    if (preparedItem.tamanoMaximoPermitido !== undefined) {
-      console.log(
-        `🔧 tamanoMaximoPermitido en item preparado:`,
-        preparedItem.tamanoMaximoPermitido
-      );
     }
 
     return preparedItem;
@@ -233,19 +196,11 @@ class BaseService {
    */
   async create(item) {
     try {
-      console.log(`🔧 BaseService.create() llamado para ${this.entityName}`);
-      console.log(`🔧 Storage key: ${this.storageKey}`);
-      console.log(`🔧 Item recibido:`, item);
-
       this.validateInitialization();
 
       // Validar el item
       const validation = this.validateItem(item);
       if (!validation.isValid) {
-        console.log(
-          `❌ Validación fallida para ${this.entityName}:`,
-          validation.errors
-        );
         return {
           success: false,
           errors: validation.errors,
@@ -255,10 +210,6 @@ class BaseService {
       // Verificar duplicados
       const duplicateCheck = this.checkForDuplicates(item);
       if (!duplicateCheck.isValid) {
-        console.log(
-          `❌ Duplicados encontrados para ${this.entityName}:`,
-          duplicateCheck.errors
-        );
         return {
           success: false,
           errors: duplicateCheck.errors,
@@ -266,9 +217,7 @@ class BaseService {
       }
 
       // Agregar el item
-      console.log(`✅ Agregando item a ${this.entityName}...`);
       this.items.push(item);
-      console.log(`📊 Total items en ${this.entityName}: ${this.items.length}`);
 
       await this.saveToStorage();
 

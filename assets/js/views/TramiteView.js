@@ -290,7 +290,6 @@ class TramiteView extends BaseView {
         <table class="table table-hover">
           <thead>
             <tr>
-              <th class="text-center">ID</th>
               <th class="text-center">Período Académico</th>
               <th class="text-center">Semestre</th>
               <th class="text-center">Sede</th>
@@ -338,11 +337,6 @@ class TramiteView extends BaseView {
     return `
       <tr>
         <td class="text-center">
-          <small class="text-muted">${this.escapeHtml(
-            tramite.id || 'N/A'
-          )}</small>
-        </td>
-        <td class="text-center">
           <span class="badge bg-primary">${this.escapeHtml(
             tramite.periodoAcademico || 'N/A'
           )}</span>
@@ -360,9 +354,7 @@ class TramiteView extends BaseView {
         <td class="text-center">
           <strong>${this.escapeHtml(tramite.tramiteNombre || 'N/A')}</strong>
           <br>
-          <small class="text-muted">ID: ${this.escapeHtml(
-            tramite.tramiteId || 'N/A'
-          )}</small>
+    
         </td>
         <td class="text-center">
           <small>${this.formatearFecha(tramite.fechaInicio)}</small>
@@ -1400,12 +1392,6 @@ class TramiteView extends BaseView {
         this.obtenerDocumentosVinculadosCompletos(tramiteId);
 
       // Debug: Log para verificar los datos
-      console.log(
-        'Documentos vinculados para tramite',
-        tramiteId,
-        ':',
-        documentosVinculados
-      );
 
       // Obtener el contenedor de la tabla
       const container = document.getElementById(
@@ -1482,11 +1468,6 @@ class TramiteView extends BaseView {
         );
 
         // Debug: Log para verificar que se guardó correctamente
-        console.log('Vinculación guardada:', nuevaVinculacion);
-        console.log(
-          'Todas las vinculaciones actualizadas:',
-          vinculacionesActualizadas
-        );
 
         // Limpiar documento seleccionado temporal
         localStorage.removeItem(selectedKey);
@@ -1599,17 +1580,6 @@ class TramiteView extends BaseView {
       const documentosParsed = documentos ? JSON.parse(documentos) : [];
 
       // Debug: Log para verificar los documentos recuperados
-      console.log(
-        '💾 Documentos recuperados del localStorage:',
-        documentosParsed
-      );
-      if (documentosParsed.length > 0) {
-        console.log('📄 Primer documento:', documentosParsed[0]);
-        console.log(
-          '📏 Campos del primer documento:',
-          Object.keys(documentosParsed[0])
-        );
-      }
 
       return documentosParsed;
     } catch (error) {
@@ -1675,12 +1645,6 @@ class TramiteView extends BaseView {
     const documento = documentosCreados.find(doc => doc.id === documentoId);
 
     // Debug: Log para verificar los datos del documento
-    console.log('📋 Documentos creados encontrados:', documentosCreados);
-    console.log('📄 Documento seleccionado:', documento);
-    console.log(
-      '📏 Tamaño máximo permitido del documento:',
-      documento?.tamanoMaximoPermitido
-    );
 
     if (!documento) {
       this.showAlert('Documento no encontrado', 'danger');
@@ -1761,11 +1725,6 @@ class TramiteView extends BaseView {
     const infoContainer = document.getElementById('documentoSeleccionadoInfo');
 
     // Debug: Log para verificar los datos del documento a mostrar
-    console.log('🖥️ Documento a mostrar en pantalla:', documento);
-    console.log(
-      '📏 Tamaño máximo permitido a mostrar:',
-      documento?.tamanoMaximoPermitido
-    );
 
     if (!container || !infoContainer) return;
 

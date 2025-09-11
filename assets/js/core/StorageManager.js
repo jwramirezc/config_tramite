@@ -27,7 +27,6 @@ class StorageManager {
 
     this.encryptionEnabled = true;
     this.encryptionKey = key;
-    console.log('🔐 Cifrado habilitado para StorageManager');
   }
 
   /**
@@ -36,7 +35,6 @@ class StorageManager {
   disableEncryption() {
     this.encryptionEnabled = false;
     this.encryptionKey = null;
-    console.log('🔓 Cifrado deshabilitado para StorageManager');
   }
 
   /**
@@ -138,7 +136,6 @@ class StorageManager {
           throw new Error(`Tipo de almacenamiento no válido: ${storageType}`);
       }
 
-      console.log(`💾 Datos guardados en ${storageType}: ${key}`);
       return true;
     } catch (error) {
       console.error(`❌ Error al guardar datos en ${storageType}:`, error);
@@ -181,7 +178,6 @@ class StorageManager {
       // Verificar si los datos han expirado
       if (metadata.expiresAt && Date.now() > metadata.expiresAt) {
         this.remove(key, storageType);
-        console.log(`⏰ Datos expirados para la clave: ${key}`);
         return defaultValue;
       }
 
@@ -248,7 +244,6 @@ class StorageManager {
           throw new Error(`Tipo de almacenamiento no válido: ${storageType}`);
       }
 
-      console.log(`🗑️ Datos removidos de ${storageType}: ${key}`);
       return true;
     } catch (error) {
       console.error(`❌ Error al remover datos de ${storageType}:`, error);
@@ -277,7 +272,6 @@ class StorageManager {
           throw new Error(`Tipo de almacenamiento no válido: ${storageType}`);
       }
 
-      console.log(`🧹 Almacenamiento ${storageType} limpiado`);
       return true;
     } catch (error) {
       console.error(`❌ Error al limpiar ${storageType}:`, error);
@@ -457,9 +451,6 @@ class StorageManager {
       });
 
       if (cleanedCount > 0) {
-        console.log(
-          `🧹 ${cleanedCount} elementos expirados/corruptos removidos de ${storageType}`
-        );
       }
 
       return cleanedCount;
@@ -547,6 +538,5 @@ class StorageManager {
     this.memoryStorage.clear();
     this.encryptionEnabled = false;
     this.encryptionKey = null;
-    console.log('🧹 StorageManager limpiado');
   }
 }

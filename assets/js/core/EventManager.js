@@ -342,7 +342,5 @@ class EventManager {
     }
 
     this.lastEmitTimes = {};
-
-    console.log('🧹 EventManager limpiado');
   }
 }

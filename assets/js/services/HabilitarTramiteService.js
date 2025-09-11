@@ -11,11 +11,7 @@ class HabilitarTramiteService extends BaseService {
    * Inicializa el servicio
    */
   async initialize() {
-    console.log('🔧 Inicializando HabilitarTramiteService...');
-    console.log('🔧 Storage key:', this.storageKey);
     await super.initialize();
-    console.log('✅ HabilitarTramiteService inicializado correctamente');
-    console.log('📊 Items cargados:', this.items.length);
   }
 
   /**
@@ -92,18 +88,8 @@ class HabilitarTramiteService extends BaseService {
    * @returns {Object} Resultado de la operación
    */
   async create(data) {
-    console.log('🔧 HabilitarTramiteService.create() llamado');
-    console.log('🔧 Datos recibidos:', data);
-    console.log('🔧 Llamando a super.create()...');
-
     try {
       const result = await super.create(data);
-      console.log('🔧 Resultado de super.create():', result);
-      console.log('🔧 Tipo de resultado:', typeof result);
-      console.log('🔧 result.success:', result?.success);
-      console.log('🔧 result.item:', result?.item);
-      console.log('🔧 result.errors:', result?.errors);
-
       return result;
     } catch (error) {
       console.error('❌ Error en HabilitarTramiteService.create():', error);
