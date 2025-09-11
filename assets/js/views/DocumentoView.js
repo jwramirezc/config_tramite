@@ -288,32 +288,6 @@ class DocumentoView extends BaseView {
                   </select>
                 </div>
 
-                <!-- Se envía a MaTfin -->
-                <div class="mb-3">
-                  <label class="form-label">
-                    <i class="fas fa-paper-plane me-1"></i>
-                    Se envía a MaTfin
-                  </label>
-                  <div class="row">
-                    <div class="col-6">
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="seEnviaMatfin" id="seEnviaMatfinSi" value="Sí" required>
-                        <label class="form-check-label" for="seEnviaMatfinSi">
-                          Sí
-                        </label>
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="seEnviaMatfin" id="seEnviaMatfinNo" value="No" required>
-                        <label class="form-check-label" for="seEnviaMatfinNo">
-                          No
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Tipo de Formato Esperado -->
                 <div class="mb-3">
                   <label for="tipoFormatoEsperado" class="form-label">
@@ -600,9 +574,6 @@ class DocumentoView extends BaseView {
       areaSolicitante: document.getElementById('areaSolicitante').value,
       responsableValidacion: document.getElementById('responsableValidacion')
         .value,
-      seEnviaMatfin: document.querySelector(
-        'input[name="seEnviaMatfin"]:checked'
-      )?.value,
       tipoFormatoEsperado: document
         .getElementById('tipoFormatoEsperado')
         .value.trim(),
@@ -633,7 +604,6 @@ class DocumentoView extends BaseView {
       'descripcionDocumento',
       'areaSolicitante',
       'responsableValidacion',
-      'seEnviaMatfin',
       'tipoFormatoEsperado',
       'tamanoMaximoPermitido',
       'obligatoriedad',
@@ -725,7 +695,6 @@ class DocumentoView extends BaseView {
       descripcionDocumento: 'Descripción del Documento',
       areaSolicitante: 'Área Solicitante',
       responsableValidacion: 'Responsable de Validación',
-      seEnviaMatfin: 'Se envía a MaTfin',
       tipoFormatoEsperado: 'Tipo de Formato Esperado',
       tamanoMaximoPermitido: 'Tamaño máximo permitido',
       obligatoriedad: 'Obligatoriedad',
