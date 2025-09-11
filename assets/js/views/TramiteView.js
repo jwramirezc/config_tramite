@@ -55,7 +55,7 @@ class TramiteView extends BaseView {
         <div class="text-center py-5">
           <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
           <h5 class="text-muted">Seleccione un tipo de reporte</h5>
-          <p class="text-muted">Use el selector de arriba para elegir entre "Reporte de Trámites" o "Reporte de Documentos"</p>
+          <p class="text-muted">Use el selector de arriba para elegir entre "Reporte de Trámites", "Reporte de Documentos" o "Trámites Habilitados"</p>
         </div>
       `;
     }
@@ -254,7 +254,7 @@ class TramiteView extends BaseView {
           <small>${this.formatDate(documento.fechaCreacion)}</small>
                 </td>
             </tr>
-    `;
+        `;
   }
 
   /**
@@ -268,6 +268,171 @@ class TramiteView extends BaseView {
         <p class="text-muted">Crea tu primer documento usando el botón "Crear Documento"</p>
       </div>
         `;
+  }
+
+  /**
+   * Renderiza el reporte de trámites habilitados
+   */
+  renderTramitesHabilitadosReport() {
+    // Actualizar título del reporte
+    this.updateReportTitle('Trámites Habilitados', 'fas fa-calendar-check');
+
+    // Obtener trámites habilitados del localStorage
+    const tramitesHabilitados = this.getTramitesHabilitadosFromStorage();
+
+    if (tramitesHabilitados.length === 0) {
+      this.renderEmptyTramitesHabilitadosState();
+      return;
+    }
+
+    const tableHTML = `
+      <div class="table-responsive fade-in">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-center">ID</th>
+              <th class="text-center">Período Académico</th>
+              <th class="text-center">Semestre</th>
+              <th class="text-center">Sede</th>
+              <th class="text-center">Trámite</th>
+              <th class="text-center">Fecha Inicio</th>
+              <th class="text-center">Fecha Finalización</th>
+              <th class="text-center">Inicio Corrección</th>
+              <th class="text-center">Fin Corrección</th>
+              <th class="text-center">Fecha Creación</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tramitesHabilitados
+              .map(tramite => this.renderTramiteHabilitadoRow(tramite))
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    this.container.innerHTML = tableHTML;
+  }
+
+  /**
+   * Obtiene trámites habilitados del localStorage
+   */
+  getTramitesHabilitadosFromStorage() {
+    try {
+      const tramitesData = localStorage.getItem('habilitar_tramites');
+      return tramitesData ? JSON.parse(tramitesData) : [];
+    } catch (error) {
+      console.error(
+        'Error al obtener trámites habilitados del localStorage:',
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Renderiza una fila de trámite habilitado
+   */
+  renderTramiteHabilitadoRow(tramite) {
+    return `
+      <tr>
+        <td class="text-center">
+          <small class="text-muted">${this.escapeHtml(
+            tramite.id || 'N/A'
+          )}</small>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-primary">${this.escapeHtml(
+            tramite.periodoAcademico || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-info">${this.escapeHtml(
+            tramite.semestre || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-success">${this.escapeHtml(
+            tramite.sede || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <strong>${this.escapeHtml(tramite.tramiteNombre || 'N/A')}</strong>
+          <br>
+          <small class="text-muted">ID: ${this.escapeHtml(
+            tramite.tramiteId || 'N/A'
+          )}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.formatearFecha(tramite.fechaInicio)}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.formatearFecha(tramite.fechaFinalizacion)}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.formatearFecha(tramite.fechaInicioCorreccion)}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.formatearFecha(tramite.fechaFinCorreccion)}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.formatearFecha(tramite.fechaCreacion)}</small>
+        </td>
+        <td class="text-center">
+          <span class="badge ${this.getEstadoBadgeClass(tramite.estado)}">
+            ${this.escapeHtml(tramite.estado || 'Activo')}
+          </span>
+        </td>
+      </tr>
+    `;
+  }
+
+  /**
+   * Renderiza el estado vacío cuando no hay trámites habilitados
+   */
+  renderEmptyTramitesHabilitadosState() {
+    this.container.innerHTML = `
+      <div class="text-center py-5">
+        <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No hay trámites habilitados registrados</h5>
+        <p class="text-muted">Habilita tu primer trámite usando el botón "Habilitar Trámites"</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Formatea una fecha para mostrar
+   */
+  formatearFecha(fecha) {
+    if (!fecha) return 'N/A';
+
+    try {
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch (error) {
+      return fecha;
+    }
+  }
+
+  /**
+   * Obtiene la clase CSS para el badge del estado
+   */
+  getEstadoBadgeClass(estado) {
+    switch (estado?.toLowerCase()) {
+      case 'activo':
+        return 'bg-success';
+      case 'inactivo':
+        return 'bg-danger';
+      case 'pendiente':
+        return 'bg-warning';
+      default:
+        return 'bg-secondary';
+    }
   }
 
   /**

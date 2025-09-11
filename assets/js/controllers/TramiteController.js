@@ -144,6 +144,9 @@ class TramiteController extends BaseController {
         case 'documentos':
           this.tramiteView.renderDocumentosReport();
           break;
+        case 'tramites_habilitados':
+          this.tramiteView.renderTramitesHabilitadosReport();
+          break;
         case '':
         default:
           this.tramiteView.showInitialState();
