@@ -480,7 +480,7 @@ class DocumentoView extends BaseView {
                 Cancelar
               </button>
               <button type="button" class="btn btn-primary" id="btnGuardarDocumento">
-                Guardar Documento
+                Guardar
               </button>
             </div>
           </div>
