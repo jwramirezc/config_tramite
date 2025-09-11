@@ -219,27 +219,14 @@ class TramiteView extends BaseView {
           )}</small>
                 </td>
                 <td class="text-center">
-          <span class="badge bg-info">${this.escapeHtml(
-            documento.tipoFormatoEsperado || 'N/A'
-          )}</span>
+          ${this.escapeHtml(documento.tipoFormatoEsperado || 'N/A')}
         </td>
         <td class="text-center">
-          <span class="badge bg-secondary">${this.escapeHtml(
-            documento.tamanoMaximoPermitido || 'N/A'
-          )}</span>
+          ${this.escapeHtml(documento.tamanoMaximoPermitido || 'N/A')}
         </td>
         <td class="text-center">
-          <span class="badge ${
-            documento.obligatoriedad === 'Sí' ? 'bg-danger' : 'bg-success'
-          }">
-            <i class="fas ${
-              documento.obligatoriedad === 'Sí'
-                ? 'fa-exclamation-triangle'
-                : 'fa-check-circle'
-            } me-1"></i>
-            ${this.escapeHtml(documento.obligatoriedad || 'No')}
-                    </span>
-                </td>
+          ${this.escapeHtml(documento.obligatoriedad || 'No')}
+        </td>
                 <td class="text-center">
           <small>${this.formatDate(documento.fechaCreacion)}</small>
                 </td>
