@@ -42,6 +42,16 @@ class TramiteController extends BaseController {
       console.error('❌ Botón crear documento no encontrado en el DOM');
     }
 
+    // Selector de reportes
+    const reportSelector = document.getElementById('reportSelector');
+    if (reportSelector) {
+      reportSelector.addEventListener('change', e =>
+        this.handleReportSelection(e.target.value)
+      );
+    } else {
+      console.error('❌ Selector de reportes no encontrado en el DOM');
+    }
+
     // Botón guardar trámite
     const btnGuardarTramite = document.getElementById('btnGuardarTramite');
     if (btnGuardarTramite) {
@@ -118,8 +128,31 @@ class TramiteController extends BaseController {
    */
   async initialize() {
     await super.initialize();
-    // Cargar trámites después de la inicialización
-    await this.loadTramites();
+    // No cargar trámites automáticamente - se cargarán cuando el usuario seleccione el reporte
+  }
+
+  /**
+   * Maneja la selección del tipo de reporte
+   * @param {string} reportType - Tipo de reporte seleccionado
+   */
+  async handleReportSelection(reportType) {
+    try {
+      switch (reportType) {
+        case 'tramites':
+          await this.loadTramites();
+          break;
+        case 'documentos':
+          this.tramiteView.renderDocumentosReport();
+          break;
+        case '':
+        default:
+          this.tramiteView.showInitialState();
+          break;
+      }
+    } catch (error) {
+      console.error('Error al cargar reporte:', error);
+      this.showError('Error al cargar el reporte seleccionado');
+    }
   }
 
   /**

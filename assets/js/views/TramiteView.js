@@ -5,7 +5,8 @@
 class TramiteView extends BaseView {
   constructor() {
     super();
-    this.container = document.getElementById('tablaTramitesContainer');
+    this.container = document.getElementById('reportContainer');
+    this.reportTitle = document.getElementById('reportTitle');
     this.modalCrear = document.getElementById('modalCrearTramite');
     this.modalOpciones = document.getElementById('modalOpcionesTramite');
     this.form = document.getElementById('formCrearTramite');
@@ -30,6 +31,35 @@ class TramiteView extends BaseView {
   async initialize() {
     await super.initialize();
     this.setupCommonElements();
+    // Mostrar estado inicial (sin reporte seleccionado)
+    this.showInitialState();
+  }
+
+  /**
+   * Actualiza el título del reporte
+   * @param {string} title - Título del reporte
+   * @param {string} icon - Icono del reporte
+   */
+  updateReportTitle(title, icon = 'fas fa-chart-bar') {
+    if (this.reportTitle) {
+      this.reportTitle.innerHTML = `<i class="${icon} me-2"></i>${title}`;
+    }
+  }
+
+  /**
+   * Muestra el estado inicial (sin reporte seleccionado)
+   */
+  showInitialState() {
+    if (this.container) {
+      this.container.innerHTML = `
+        <div class="text-center py-5">
+          <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">Seleccione un tipo de reporte</h5>
+          <p class="text-muted">Use el selector de arriba para elegir entre "Reporte de Trámites" o "Reporte de Documentos"</p>
+        </div>
+      `;
+    }
+    this.updateReportTitle('Seleccione un reporte para comenzar');
   }
 
   /**
@@ -37,6 +67,9 @@ class TramiteView extends BaseView {
    * @param {Array} tramites - Array de trámites a mostrar
    */
   renderTable(tramites = []) {
+    // Actualizar título del reporte
+    this.updateReportTitle('Reporte de Trámites', 'fas fa-list-alt');
+
     if (tramites.length === 0) {
       this.renderEmptyState();
       return;
@@ -124,6 +157,133 @@ class TramiteView extends BaseView {
                     </button>
                 </td>
             </tr>
+        `;
+  }
+
+  /**
+   * Renderiza el reporte de documentos
+   */
+  renderDocumentosReport() {
+    // Actualizar título del reporte
+    this.updateReportTitle('Reporte de Documentos', 'fas fa-file-alt');
+
+    // Obtener documentos del localStorage
+    const documentos = this.getDocumentosFromStorage();
+
+    if (documentos.length === 0) {
+      this.renderEmptyDocumentosState();
+      return;
+    }
+
+    const tableHTML = `
+      <div class="table-responsive fade-in">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-center">Nombre</th>
+              <th class="text-center">Tipo Documental</th>
+              <th class="text-center">Descripción</th>
+              <th class="text-center">Área Solicitante</th>
+              <th class="text-center">Responsable</th>
+              <th class="text-center">Formato</th>
+              <th class="text-center">Tamaño (MB)</th>
+              <th class="text-center">Obligatorio</th>
+              <th class="text-center">Fecha Creación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${documentos
+              .map(documento => this.renderDocumentoRow(documento))
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    this.container.innerHTML = tableHTML;
+  }
+
+  /**
+   * Obtiene documentos del localStorage
+   */
+  getDocumentosFromStorage() {
+    try {
+      const documentosData = localStorage.getItem('documentos_tramites');
+      return documentosData ? JSON.parse(documentosData) : [];
+    } catch (error) {
+      console.error('Error al obtener documentos del localStorage:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Renderiza una fila de documento
+   */
+  renderDocumentoRow(documento) {
+    return `
+      <tr>
+        <td>
+          <strong>${this.escapeHtml(
+            documento.nombreDocumento || 'N/A'
+          )}</strong>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-primary">${this.escapeHtml(
+            documento.tipoDocumental || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <small class="text-muted">${this.escapeHtml(
+            documento.descripcionDocumento || 'Sin descripción'
+          )}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.escapeHtml(documento.areaSolicitante || 'N/A')}</small>
+        </td>
+        <td class="text-center">
+          <small>${this.escapeHtml(
+            documento.responsableValidacion || 'N/A'
+          )}</small>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-info">${this.escapeHtml(
+            documento.tipoFormatoEsperado || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-secondary">${this.escapeHtml(
+            documento.tamanoMaximoPermitido || 'N/A'
+          )}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge ${
+            documento.obligatoriedad === 'Sí' ? 'bg-danger' : 'bg-success'
+          }">
+            <i class="fas ${
+              documento.obligatoriedad === 'Sí'
+                ? 'fa-exclamation-triangle'
+                : 'fa-check-circle'
+            } me-1"></i>
+            ${this.escapeHtml(documento.obligatoriedad || 'No')}
+          </span>
+        </td>
+        <td class="text-center">
+          <small>${this.formatDate(documento.fechaCreacion)}</small>
+        </td>
+      </tr>
+    `;
+  }
+
+  /**
+   * Renderiza el estado vacío cuando no hay documentos
+   */
+  renderEmptyDocumentosState() {
+    this.container.innerHTML = `
+      <div class="text-center py-5">
+        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No hay documentos registrados</h5>
+        <p class="text-muted">Crea tu primer documento usando el botón "Crear Documento"</p>
+      </div>
         `;
   }
 
