@@ -78,7 +78,9 @@ class Tramite {
   toJSON() {
     return {
       id: this.id,
+      codigo: this.codigo,
       nombre: this.nombre,
+      descripcion: this.descripcion,
       periodoAnio: this.periodoAnio,
       periodoSemestre: this.periodoSemestre,
       sede: this.sede,
