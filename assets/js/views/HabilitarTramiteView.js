@@ -202,13 +202,7 @@ class HabilitarTramiteView extends BaseView {
     const sedeSelect = document.getElementById('sede');
     if (!sedeSelect) return;
 
-    const sedes = [
-      'Cartagena',
-      'Barranquilla',
-      'Santa Marta',
-      'Montería',
-      'Valledupar',
-    ];
+    const sedes = ['Norte', 'Sur', 'Centro', 'Oriente', 'Occidente'];
     sedeSelect.innerHTML = '<option value="">Seleccionar sede...</option>';
 
     sedes.forEach(sede => {
