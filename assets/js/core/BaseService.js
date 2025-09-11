@@ -233,11 +233,19 @@ class BaseService {
    */
   async create(item) {
     try {
+      console.log(`🔧 BaseService.create() llamado para ${this.entityName}`);
+      console.log(`🔧 Storage key: ${this.storageKey}`);
+      console.log(`🔧 Item recibido:`, item);
+
       this.validateInitialization();
 
       // Validar el item
       const validation = this.validateItem(item);
       if (!validation.isValid) {
+        console.log(
+          `❌ Validación fallida para ${this.entityName}:`,
+          validation.errors
+        );
         return {
           success: false,
           errors: validation.errors,
@@ -247,6 +255,10 @@ class BaseService {
       // Verificar duplicados
       const duplicateCheck = this.checkForDuplicates(item);
       if (!duplicateCheck.isValid) {
+        console.log(
+          `❌ Duplicados encontrados para ${this.entityName}:`,
+          duplicateCheck.errors
+        );
         return {
           success: false,
           errors: duplicateCheck.errors,
@@ -254,7 +266,10 @@ class BaseService {
       }
 
       // Agregar el item
+      console.log(`✅ Agregando item a ${this.entityName}...`);
       this.items.push(item);
+      console.log(`📊 Total items en ${this.entityName}: ${this.items.length}`);
+
       await this.saveToStorage();
 
       return {

@@ -13,16 +13,19 @@ class TramiteApp {
     this.tramiteService = null;
     this.documentoService = null;
     this.estadoService = null;
+    this.habilitarTramiteService = null;
 
     // Controladores principales
     this.tramiteController = null;
     this.documentoController = null;
     this.estadoController = null;
+    this.habilitarTramiteController = null;
 
     // Vistas principales
     this.tramiteView = null;
     this.documentoView = null;
     this.estadoView = null;
+    this.habilitarTramiteView = null;
   }
 
   /**
@@ -75,18 +78,21 @@ class TramiteApp {
     this.tramiteService = new TramiteService();
     this.documentoService = new DocumentoService();
     this.estadoService = new EstadoService();
+    this.habilitarTramiteService = new HabilitarTramiteService();
 
     // Inicializar servicios
     await Promise.all([
       this.tramiteService.initialize(),
       this.documentoService.initialize(),
       this.estadoService.initialize(),
+      this.habilitarTramiteService.initialize(),
     ]);
 
     // Registrar servicios en el mapa de módulos
     this.modules.set('tramiteService', this.tramiteService);
     this.modules.set('documentoService', this.documentoService);
     this.modules.set('estadoService', this.estadoService);
+    this.modules.set('habilitarTramiteService', this.habilitarTramiteService);
   }
 
   /**
@@ -112,12 +118,18 @@ class TramiteApp {
       this.eventManager
     );
 
+    this.habilitarTramiteController = new HabilitarTramiteController();
+
     // Los controladores se inicializarán después de que se les asignen las vistas
 
     // Registrar controladores en el mapa de módulos
     this.modules.set('tramiteController', this.tramiteController);
     this.modules.set('documentoController', this.documentoController);
     this.modules.set('estadoController', this.estadoController);
+    this.modules.set(
+      'habilitarTramiteController',
+      this.habilitarTramiteController
+    );
   }
 
   /**
@@ -128,33 +140,46 @@ class TramiteApp {
     this.tramiteView = new TramiteView();
     this.documentoView = new DocumentoView();
     this.estadoView = new EstadoView();
+    this.habilitarTramiteView = new HabilitarTramiteView();
 
     // Inicializar vistas
     await Promise.all([
       this.tramiteView.initialize(),
       this.documentoView.initialize(),
       this.estadoView.initialize(),
+      this.habilitarTramiteView.initialize(),
     ]);
 
     // Actualizar los controladores con sus vistas correspondientes
     this.tramiteController.tramiteView = this.tramiteView;
     this.documentoController.documentoView = this.documentoView;
     this.estadoController.estadoView = this.estadoView;
+    this.habilitarTramiteController.habilitarTramiteView =
+      this.habilitarTramiteView;
 
     // Registrar vistas en el mapa de módulos
     this.modules.set('tramiteView', this.tramiteView);
     this.modules.set('documentoView', this.documentoView);
     this.modules.set('estadoView', this.estadoView);
+    this.modules.set('habilitarTramiteView', this.habilitarTramiteView);
 
     // Exponer vistas globalmente para acceso desde HTML
     window.tramiteView = this.tramiteView;
     window.documentoView = this.documentoView;
+    window.habilitarTramiteView = this.habilitarTramiteView;
+
+    // Exponer controladores globalmente para debugging
+    window.habilitarTramiteController = this.habilitarTramiteController;
 
     // Ahora inicializar los controladores después de que tengan sus vistas
     await Promise.all([
       this.tramiteController.initialize(),
       this.documentoController.initialize(),
       this.estadoController.initialize(),
+      this.habilitarTramiteController.initialize(
+        this.habilitarTramiteService,
+        this.eventManager
+      ),
     ]);
   }
 
@@ -196,6 +221,19 @@ class TramiteApp {
     // Eventos de estados
     this.eventManager.on('estado:changed', data => {
       this.handleEstadoChanged(data);
+    });
+
+    // Eventos de habilitar trámites
+    this.eventManager.on('habilitarTramite:created', data => {
+      this.handleHabilitarTramiteCreated(data);
+    });
+
+    this.eventManager.on('habilitarTramite:updated', data => {
+      this.handleHabilitarTramiteUpdated(data);
+    });
+
+    this.eventManager.on('habilitarTramite:deleted', data => {
+      this.handleHabilitarTramiteDeleted(data);
     });
   }
 
@@ -388,6 +426,27 @@ class TramiteApp {
   }
 
   /**
+   * Maneja eventos de trámites habilitados creados
+   */
+  handleHabilitarTramiteCreated(data) {
+    this.showSuccess('Trámite habilitado creado exitosamente');
+  }
+
+  /**
+   * Maneja eventos de trámites habilitados actualizados
+   */
+  handleHabilitarTramiteUpdated(data) {
+    this.showSuccess('Trámite habilitado actualizado exitosamente');
+  }
+
+  /**
+   * Maneja eventos de trámites habilitados eliminados
+   */
+  handleHabilitarTramiteDeleted(data) {
+    this.showSuccess('Trámite habilitado eliminado exitosamente');
+  }
+
+  /**
    * Obtiene un módulo por nombre
    */
   getModule(name) {
@@ -476,6 +535,9 @@ class TramiteApp {
           ? this.documentoService.getStats()
           : null,
         estado: this.estadoService ? this.estadoService.getStats() : null,
+        habilitarTramite: this.habilitarTramiteService
+          ? this.habilitarTramiteService.getStats()
+          : null,
       },
     };
   }
@@ -488,16 +550,20 @@ class TramiteApp {
     if (this.tramiteController) this.tramiteController.cleanup();
     if (this.documentoController) this.documentoController.cleanup();
     if (this.estadoController) this.estadoController.cleanup();
+    if (this.habilitarTramiteController)
+      this.habilitarTramiteController.cleanup();
 
     // Limpiar vistas
     if (this.tramiteView) this.tramiteView.cleanup();
     if (this.documentoView) this.documentoView.cleanup();
     if (this.estadoView) this.estadoView.cleanup();
+    if (this.habilitarTramiteView) this.habilitarTramiteView.cleanup();
 
     // Limpiar servicios
     if (this.tramiteService) this.tramiteService.cleanup();
     if (this.documentoService) this.documentoService.cleanup();
     if (this.estadoService) this.estadoService.cleanup();
+    if (this.habilitarTramiteService) this.habilitarTramiteService.cleanup();
 
     // Limpiar gestores core
     if (this.eventManager) this.eventManager.cleanup();
