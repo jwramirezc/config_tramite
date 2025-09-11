@@ -12,19 +12,16 @@ class TramiteApp {
     // Servicios principales
     this.tramiteService = null;
     this.documentoService = null;
-    this.fechaService = null;
     this.estadoService = null;
 
     // Controladores principales
     this.tramiteController = null;
     this.documentoController = null;
-    this.fechaController = null;
     this.estadoController = null;
 
     // Vistas principales
     this.tramiteView = null;
     this.documentoView = null;
-    this.fechaView = null;
     this.estadoView = null;
   }
 
@@ -77,21 +74,18 @@ class TramiteApp {
     // Crear instancias de servicios
     this.tramiteService = new TramiteService();
     this.documentoService = new DocumentoService();
-    this.fechaService = new FechaService();
     this.estadoService = new EstadoService();
 
     // Inicializar servicios
     await Promise.all([
       this.tramiteService.initialize(),
       this.documentoService.initialize(),
-      this.fechaService.initialize(),
       this.estadoService.initialize(),
     ]);
 
     // Registrar servicios en el mapa de módulos
     this.modules.set('tramiteService', this.tramiteService);
     this.modules.set('documentoService', this.documentoService);
-    this.modules.set('fechaService', this.fechaService);
     this.modules.set('estadoService', this.estadoService);
   }
 
@@ -112,12 +106,6 @@ class TramiteApp {
       this.eventManager
     );
 
-    this.fechaController = new FechaController(
-      this.fechaService,
-      this.tramiteService,
-      this.eventManager
-    );
-
     this.estadoController = new EstadoController(
       this.estadoService,
       this.tramiteService,
@@ -129,7 +117,6 @@ class TramiteApp {
     // Registrar controladores en el mapa de módulos
     this.modules.set('tramiteController', this.tramiteController);
     this.modules.set('documentoController', this.documentoController);
-    this.modules.set('fechaController', this.fechaController);
     this.modules.set('estadoController', this.estadoController);
   }
 
@@ -140,27 +127,23 @@ class TramiteApp {
     // Crear instancias de vistas
     this.tramiteView = new TramiteView();
     this.documentoView = new DocumentoView();
-    this.fechaView = new FechaView();
     this.estadoView = new EstadoView();
 
     // Inicializar vistas
     await Promise.all([
       this.tramiteView.initialize(),
       this.documentoView.initialize(),
-      this.fechaView.initialize(),
       this.estadoView.initialize(),
     ]);
 
     // Actualizar los controladores con sus vistas correspondientes
     this.tramiteController.tramiteView = this.tramiteView;
     this.documentoController.documentoView = this.documentoView;
-    this.fechaController.fechaView = this.fechaView;
     this.estadoController.estadoView = this.estadoView;
 
     // Registrar vistas en el mapa de módulos
     this.modules.set('tramiteView', this.tramiteView);
     this.modules.set('documentoView', this.documentoView);
-    this.modules.set('fechaView', this.fechaView);
     this.modules.set('estadoView', this.estadoView);
 
     // Exponer vistas globalmente para acceso desde HTML
@@ -171,7 +154,6 @@ class TramiteApp {
     await Promise.all([
       this.tramiteController.initialize(),
       this.documentoController.initialize(),
-      this.fechaController.initialize(),
       this.estadoController.initialize(),
     ]);
   }
@@ -211,19 +193,6 @@ class TramiteApp {
       this.handleDocumentoDeleted(data);
     });
 
-    // Eventos de fechas
-    this.eventManager.on('fecha:created', data => {
-      this.handleFechaCreated(data);
-    });
-
-    this.eventManager.on('fecha:updated', data => {
-      this.handleFechaUpdated(data);
-    });
-
-    this.eventManager.on('fecha:deleted', data => {
-      this.handleFechaDeleted(data);
-    });
-
     // Eventos de estados
     this.eventManager.on('estado:changed', data => {
       this.handleEstadoChanged(data);
@@ -255,9 +224,6 @@ class TramiteApp {
         break;
       case 'documento':
         this.navigateToDocumento(action, params);
-        break;
-      case 'fecha':
-        this.navigateToFecha(action, params);
         break;
       case 'estado':
         this.navigateToEstado(action, params);
@@ -339,28 +305,6 @@ class TramiteApp {
   }
 
   /**
-   * Navega a funcionalidades de fechas
-   */
-  navigateToFecha(action, params) {
-    switch (action) {
-      case 'list':
-        this.fechaView.showList(params.tramiteId);
-        break;
-      case 'create':
-        this.fechaView.showCreateForm(params.tramiteId);
-        break;
-      case 'edit':
-        this.fechaView.showEditForm(params.id);
-        break;
-      case 'view':
-        this.fechaView.showDetails(params.id);
-        break;
-      default:
-        this.fechaView.showList(params.tramiteId);
-    }
-  }
-
-  /**
    * Navega a funcionalidades de estados
    */
   navigateToEstado(action, params) {
@@ -434,27 +378,6 @@ class TramiteApp {
    */
   handleDocumentoDeleted(data) {
     this.showSuccess('Documento eliminado exitosamente');
-  }
-
-  /**
-   * Maneja eventos de fechas creadas
-   */
-  handleFechaCreated(data) {
-    this.showSuccess('Fechas configuradas exitosamente');
-  }
-
-  /**
-   * Maneja eventos de fechas actualizadas
-   */
-  handleFechaUpdated(data) {
-    this.showSuccess('Fechas actualizadas exitosamente');
-  }
-
-  /**
-   * Maneja eventos de fechas eliminadas
-   */
-  handleFechaDeleted(data) {
-    this.showSuccess('Fechas eliminadas exitosamente');
   }
 
   /**
@@ -552,7 +475,6 @@ class TramiteApp {
         documento: this.documentoService
           ? this.documentoService.getStats()
           : null,
-        fecha: this.fechaService ? this.fechaService.getStats() : null,
         estado: this.estadoService ? this.estadoService.getStats() : null,
       },
     };
@@ -565,19 +487,16 @@ class TramiteApp {
     // Limpiar controladores
     if (this.tramiteController) this.tramiteController.cleanup();
     if (this.documentoController) this.documentoController.cleanup();
-    if (this.fechaController) this.fechaController.cleanup();
     if (this.estadoController) this.estadoController.cleanup();
 
     // Limpiar vistas
     if (this.tramiteView) this.tramiteView.cleanup();
     if (this.documentoView) this.documentoView.cleanup();
-    if (this.fechaView) this.fechaView.cleanup();
     if (this.estadoView) this.estadoView.cleanup();
 
     // Limpiar servicios
     if (this.tramiteService) this.tramiteService.cleanup();
     if (this.documentoService) this.documentoService.cleanup();
-    if (this.fechaService) this.fechaService.cleanup();
     if (this.estadoService) this.estadoService.cleanup();
 
     // Limpiar gestores core

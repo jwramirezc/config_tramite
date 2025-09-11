@@ -83,10 +83,6 @@ class TramiteView extends BaseView {
                             <th class="text-center">Código</th>
                             <th class="text-center">Nombre</th>
                             <th class="text-center">Descripción</th>
-                            <th class="text-center">Fecha Inicio</th>
-                            <th class="text-center">Fecha Fin</th>
-                            <th class="text-center">Fecha Inicio Subs</th>
-                            <th class="text-center">Fecha Fin Subs</th>
                             <th class="text-center">Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -111,9 +107,8 @@ class TramiteView extends BaseView {
    * @returns {string} HTML de la fila
    */
   renderTableRow(tramite) {
-    const estado = tramite.getEstadoPorFechas();
-    const estadoClass = this.getEstadoClass(estado);
-    const estadoIcon = this.getEstadoIcon(estado);
+    const estadoClass = this.getEstadoClass(tramite.estado);
+    const estadoIcon = this.getEstadoIcon(tramite.estado);
 
     return `
             <tr data-tramite-id="${tramite.id}">
@@ -131,21 +126,9 @@ class TramiteView extends BaseView {
                     )}</small>
                 </td>
                 <td class="text-center">
-                    ${this.getFechaDisplay(tramite, 'fechaInicio')}
-                </td>
-                <td class="text-center">
-                    ${this.getFechaDisplay(tramite, 'fechaFinalizacion')}
-                </td>
-                <td class="text-center">
-                    ${this.getFechaDisplay(tramite, 'fechaInicioSubsanacion')}
-                </td>
-                <td class="text-center">
-                    ${this.getFechaDisplay(tramite, 'fechaFinSubsanacion')}
-                </td>
-                <td class="text-center">
                     <span class="status-badge ${estadoClass}">
                         <i class="${estadoIcon} me-1"></i>
-                        ${this.getEstadoText(estado)}
+                        ${this.getEstadoText(tramite.estado)}
                     </span>
                 </td>
                 <td class="text-center">
@@ -226,26 +209,26 @@ class TramiteView extends BaseView {
           <strong>${this.escapeHtml(
             documento.nombreDocumento || 'N/A'
           )}</strong>
-        </td>
-        <td class="text-center">
+                </td>
+                <td class="text-center">
           <span class="badge bg-primary">${this.escapeHtml(
             documento.tipoDocumental || 'N/A'
           )}</span>
-        </td>
-        <td class="text-center">
+                </td>
+                <td class="text-center">
           <small class="text-muted">${this.escapeHtml(
             documento.descripcionDocumento || 'Sin descripción'
           )}</small>
-        </td>
-        <td class="text-center">
+                </td>
+                <td class="text-center">
           <small>${this.escapeHtml(documento.areaSolicitante || 'N/A')}</small>
-        </td>
-        <td class="text-center">
+                </td>
+                <td class="text-center">
           <small>${this.escapeHtml(
             documento.responsableValidacion || 'N/A'
           )}</small>
-        </td>
-        <td class="text-center">
+                </td>
+                <td class="text-center">
           <span class="badge bg-info">${this.escapeHtml(
             documento.tipoFormatoEsperado || 'N/A'
           )}</span>
@@ -265,12 +248,12 @@ class TramiteView extends BaseView {
                 : 'fa-check-circle'
             } me-1"></i>
             ${this.escapeHtml(documento.obligatoriedad || 'No')}
-          </span>
-        </td>
-        <td class="text-center">
+                    </span>
+                </td>
+                <td class="text-center">
           <small>${this.formatDate(documento.fechaCreacion)}</small>
-        </td>
-      </tr>
+                </td>
+            </tr>
     `;
   }
 
@@ -548,27 +531,6 @@ class TramiteView extends BaseView {
   }
 
   /**
-   * Obtiene la fecha para mostrar en la tabla principal
-   * @param {Tramite} tramite - Trámite
-   * @param {string} tipoFecha - Tipo de fecha a mostrar
-   * @returns {string} Fecha formateada o mensaje
-   */
-  getFechaDisplay(tramite, tipoFecha) {
-    const fechasMasRecientes = tramite.getFechasMasRecientes();
-
-    if (fechasMasRecientes && fechasMasRecientes[tipoFecha]) {
-      return Tramite.formatDate(fechasMasRecientes[tipoFecha]);
-    }
-
-    // Si no hay historial, mostrar las fechas principales
-    if (tramite[tipoFecha]) {
-      return Tramite.formatDate(tramite[tipoFecha]);
-    }
-
-    return '<span class="text-muted">Sin fecha</span>';
-  }
-
-  /**
    * Actualiza el texto del botón Activar/Inactivar según el estado del trámite
    * @param {Tramite} tramite - Trámite para obtener su estado
    */
@@ -578,7 +540,7 @@ class TramiteView extends BaseView {
     const botonElement = document.getElementById('btnActivarInactivarTramite');
 
     if (textoElement && iconElement && botonElement) {
-      const estado = tramite.getEstadoPorFechas();
+      const estado = tramite.estado;
 
       // Solo permitir activar/inactivar manualmente si el estado es 'activo' o 'inactivo'
       if (estado === 'activo' || estado === 'inactivo') {
@@ -896,7 +858,9 @@ class TramiteView extends BaseView {
                           <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
                             tramite.nombre
                           )}</p>
-                          <p class="mb-0"><strong>Estado:</strong> ${tramite.getEstadoPorFechas()}</p>
+                          <p class="mb-0"><strong>Estado:</strong> ${
+                            tramite.estado
+                          }</p>
                         </div>
                         <div class="col-md-6">
                           <p class="mb-2"><strong>Código:</strong> ${this.escapeHtml(
@@ -1120,7 +1084,9 @@ class TramiteView extends BaseView {
                         <p class="mb-2"><strong>Nombre:</strong> ${this.escapeHtml(
                           tramite.nombre
                         )}</p>
-                        <p class="mb-0"><strong>Estado:</strong> ${tramite.getEstadoPorFechas()}</p>
+                        <p class="mb-0"><strong>Estado:</strong> ${
+                          tramite.estado
+                        }</p>
                       </div>
                       <div class="col-md-6">
                         <p class="mb-2"><strong>Código:</strong> ${this.escapeHtml(
@@ -2606,7 +2572,7 @@ class TramiteView extends BaseView {
                 '#modalOpcionesTramite .estado-tramite'
               );
               if (estadoElement) {
-                const estado = tramite.getEstadoPorFechas();
+                const estado = tramite.estado;
                 estadoElement.textContent = `Estado: ${this.getEstadoText(
                   estado
                 )}`;
@@ -2628,60 +2594,6 @@ class TramiteView extends BaseView {
       }
     } catch (error) {
       console.error('❌ Error al actualizar modal de opciones:', error);
-    }
-  }
-
-  /**
-   * Actualiza las fechas mostradas en el modal de opciones
-   * @param {Tramite} tramite - Trámite con las fechas actualizadas
-   */
-  actualizarFechasEnModal(tramite) {
-    try {
-      // Actualizar fecha de inicio
-      const fechaInicioElement = document.querySelector(
-        '#modalOpcionesTramite .fecha-inicio'
-      );
-      if (fechaInicioElement) {
-        fechaInicioElement.textContent = this.getFechaDisplay(
-          tramite,
-          'fechaInicio'
-        );
-      }
-
-      // Actualizar fecha de finalización
-      const fechaFinalizacionElement = document.querySelector(
-        '#modalOpcionesTramite .fecha-finalizacion'
-      );
-      if (fechaFinalizacionElement) {
-        fechaFinalizacionElement.textContent = this.getFechaDisplay(
-          tramite,
-          'fechaFinalizacion'
-        );
-      }
-
-      // Actualizar fecha de inicio de subsanación
-      const fechaInicioSubsanacionElement = document.querySelector(
-        '#modalOpcionesTramite .fecha-inicio-subsanacion'
-      );
-      if (fechaInicioSubsanacionElement) {
-        fechaInicioSubsanacionElement.textContent = this.getFechaDisplay(
-          tramite,
-          'fechaInicioSubsanacion'
-        );
-      }
-
-      // Actualizar fecha fin de subsanación
-      const fechaFinSubsanacionElement = document.querySelector(
-        '#modalOpcionesTramite .fecha-fin-subsanacion'
-      );
-      if (fechaFinSubsanacionElement) {
-        fechaFinSubsanacionElement.textContent = this.getFechaDisplay(
-          tramite,
-          'fechaFinSubsanacion'
-        );
-      }
-    } catch (error) {
-      console.error('❌ Error al actualizar fechas en modal:', error);
     }
   }
 }
