@@ -68,8 +68,20 @@ class HabilitarTramiteController {
         return;
       }
 
-      // Crear el trámite habilitado
-      const result = await this.habilitarTramiteService.create(formData);
+      // Verificar si estamos editando un trámite habilitado existente
+      const isEditing = this.habilitarTramiteView.currentHabilitadoId;
+
+      let result;
+      if (isEditing) {
+        // Actualizar el trámite habilitado existente
+        result = await this.actualizarHabilitado(
+          this.habilitarTramiteView.currentHabilitadoId,
+          formData
+        );
+      } else {
+        // Crear el trámite habilitado
+        result = await this.habilitarTramiteService.create(formData);
+      }
 
       if (!result) {
         console.error('❌ Result es undefined o null');
@@ -85,11 +97,22 @@ class HabilitarTramiteController {
       }
 
       if (result.success) {
-        this.habilitarTramiteView.mostrarExito(
-          'Trámite habilitado guardado exitosamente'
-        );
+        const message = isEditing
+          ? 'Trámite habilitado actualizado exitosamente'
+          : 'Trámite habilitado guardado exitosamente';
+
+        this.habilitarTramiteView.mostrarExito(message);
+
+        // Limpiar el ID de edición
+        this.habilitarTramiteView.currentHabilitadoId = null;
+
         // Cerrar el modal después del éxito
         this.habilitarTramiteView.hideModal();
+
+        // Refrescar el reporte de trámites habilitados
+        if (window.tramiteApp && window.tramiteApp.tramiteView) {
+          window.tramiteApp.tramiteView.renderTramitesHabilitadosReport();
+        }
 
         // Verificar que se guardó en localStorage
         setTimeout(() => {
@@ -258,6 +281,61 @@ class HabilitarTramiteController {
     } catch (error) {
       console.error('❌ Error en crearTramiteHabilitadoPrueba:', error);
       return { success: false, errors: [error.message] };
+    }
+  }
+
+  /**
+   * Actualiza un trámite habilitado existente
+   * @param {string} habilitadoId - ID del trámite habilitado a actualizar
+   * @param {Object} formData - Datos del formulario
+   * @returns {Object} Resultado de la actualización
+   */
+  async actualizarHabilitado(habilitadoId, formData) {
+    try {
+      // Obtener trámites habilitados existentes
+      const habilitadosData = localStorage.getItem('habilitar_tramites');
+      if (!habilitadosData) {
+        return {
+          success: false,
+          errors: ['No se encontraron trámites habilitados'],
+        };
+      }
+
+      const habilitados = JSON.parse(habilitadosData);
+      const habilitadoIndex = habilitados.findIndex(
+        hab => hab.id === habilitadoId
+      );
+
+      if (habilitadoIndex === -1) {
+        return {
+          success: false,
+          errors: ['Trámite habilitado no encontrado'],
+        };
+      }
+
+      // Actualizar el trámite habilitado
+      const habilitadoActualizado = {
+        ...habilitados[habilitadoIndex],
+        ...formData,
+        fechaModificacion: new Date().toISOString(),
+      };
+
+      habilitados[habilitadoIndex] = habilitadoActualizado;
+
+      // Guardar en localStorage
+      localStorage.setItem('habilitar_tramites', JSON.stringify(habilitados));
+
+      return {
+        success: true,
+        item: habilitadoActualizado,
+        message: 'Trámite habilitado actualizado exitosamente',
+      };
+    } catch (error) {
+      console.error('Error al actualizar trámite habilitado:', error);
+      return {
+        success: false,
+        errors: ['Error al actualizar el trámite habilitado'],
+      };
     }
   }
 

@@ -7,6 +7,7 @@ class HabilitarTramiteView extends BaseView {
     super();
     this.modalId = 'modalHabilitarTramites';
     this.formId = 'formHabilitarTramites';
+    this.currentHabilitadoId = null;
   }
 
   /**
@@ -84,6 +85,79 @@ class HabilitarTramiteView extends BaseView {
 
     const modal = new bootstrap.Modal(document.getElementById(this.modalId));
     modal.show();
+  }
+
+  /**
+   * Muestra el modal para editar un trámite habilitado existente
+   * @param {Object} habilitado - Trámite habilitado a editar
+   */
+  showEditarHabilitadoModal(habilitado) {
+    this.cargarTramites();
+    this.cargarPeriodosAcademicos();
+    this.cargarSedes();
+
+    // Precargar los datos del trámite habilitado
+    this.precargarDatos(habilitado);
+
+    const modal = new bootstrap.Modal(document.getElementById(this.modalId));
+    modal.show();
+  }
+
+  /**
+   * Precarga los datos del trámite habilitado en el formulario
+   * @param {Object} habilitado - Datos del trámite habilitado
+   */
+  precargarDatos(habilitado) {
+    // Precargar período académico
+    const periodoSelect = document.getElementById('periodoAcademico');
+    if (periodoSelect) {
+      periodoSelect.value = habilitado.periodoAcademico || '';
+    }
+
+    // Precargar semestre
+    const semestreInput = document.getElementById('semestre');
+    if (semestreInput) {
+      semestreInput.value = habilitado.semestre || '';
+    }
+
+    // Precargar sede
+    const sedeSelect = document.getElementById('sede');
+    if (sedeSelect) {
+      sedeSelect.value = habilitado.sede || '';
+    }
+
+    // Precargar trámite
+    const tramiteSelect = document.getElementById('tramite');
+    if (tramiteSelect) {
+      tramiteSelect.value = habilitado.tramiteId || '';
+    }
+
+    // Precargar fechas
+    const fechaInicioInput = document.getElementById('fechaInicio');
+    if (fechaInicioInput) {
+      fechaInicioInput.value = habilitado.fechaInicio || '';
+    }
+
+    const fechaFinalizacionInput = document.getElementById('fechaFinalizacion');
+    if (fechaFinalizacionInput) {
+      fechaFinalizacionInput.value = habilitado.fechaFinalizacion || '';
+    }
+
+    const fechaInicioCorreccionInput = document.getElementById(
+      'fechaInicioCorreccion'
+    );
+    if (fechaInicioCorreccionInput) {
+      fechaInicioCorreccionInput.value = habilitado.fechaInicioCorreccion || '';
+    }
+
+    const fechaFinCorreccionInput =
+      document.getElementById('fechaFinCorreccion');
+    if (fechaFinCorreccionInput) {
+      fechaFinCorreccionInput.value = habilitado.fechaFinCorreccion || '';
+    }
+
+    // Guardar el ID del trámite habilitado para la actualización
+    this.currentHabilitadoId = habilitado.id;
   }
 
   /**

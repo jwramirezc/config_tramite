@@ -127,6 +127,26 @@ class TramiteController extends BaseController {
         this.editarDocumento();
       });
     }
+
+    // Event listeners para trámites habilitados
+    this.eventManager.on('habilitado:showOpciones', data => {
+      this.showOpcionesHabilitado(data.habilitadoId);
+    });
+
+    this.eventManager.on('habilitado:getById', data => {
+      const habilitado = this.getHabilitadoById(data.habilitadoId);
+      if (data.callback && typeof data.callback === 'function') {
+        data.callback(habilitado);
+      }
+    });
+
+    // Botón editar habilitado
+    const btnEditarHabilitado = document.getElementById('btnEditarHabilitado');
+    if (btnEditarHabilitado) {
+      btnEditarHabilitado.addEventListener('click', () => {
+        this.editarHabilitado();
+      });
+    }
   }
 
   /**
@@ -716,6 +736,68 @@ class TramiteController extends BaseController {
       window.tramiteApp.documentoView.showEditarDocumentoModal(documento);
     } else {
       console.error('❌ DocumentoView no está disponible');
+    }
+  }
+
+  /**
+   * Muestra las opciones de un trámite habilitado
+   * @param {string} habilitadoId - ID del trámite habilitado
+   */
+  showOpcionesHabilitado(habilitadoId) {
+    this.tramiteView.showOpcionesHabilitadoModal(habilitadoId);
+  }
+
+  /**
+   * Obtiene un trámite habilitado por ID
+   * @param {string} habilitadoId - ID del trámite habilitado
+   * @returns {Object|null} Trámite habilitado encontrado o null
+   */
+  getHabilitadoById(habilitadoId) {
+    try {
+      const habilitadosData = localStorage.getItem('habilitar_tramites');
+      if (!habilitadosData) return null;
+
+      const habilitados = JSON.parse(habilitadosData);
+      return habilitados.find(hab => hab.id === habilitadoId) || null;
+    } catch (error) {
+      console.error('Error al obtener trámite habilitado:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Edita un trámite habilitado
+   */
+  editarHabilitado() {
+    if (!this.tramiteView.currentHabilitadoId) {
+      console.error('❌ No hay trámite habilitado seleccionado para editar');
+      return;
+    }
+
+    const habilitado = this.getHabilitadoById(
+      this.tramiteView.currentHabilitadoId
+    );
+    if (!habilitado) {
+      console.error('❌ Trámite habilitado no encontrado');
+      return;
+    }
+
+    // Cerrar el modal de opciones
+    const modalOpciones = document.getElementById('modalOpcionesHabilitado');
+    if (modalOpciones) {
+      const bsModal = bootstrap.Modal.getInstance(modalOpciones);
+      if (bsModal) {
+        bsModal.hide();
+      }
+    }
+
+    // Mostrar el modal de habilitar trámites con datos precargados
+    if (window.tramiteApp && window.tramiteApp.habilitarTramiteView) {
+      window.tramiteApp.habilitarTramiteView.showEditarHabilitadoModal(
+        habilitado
+      );
+    } else {
+      console.error('❌ HabilitarTramiteView no está disponible');
     }
   }
 }

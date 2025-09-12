@@ -12,9 +12,13 @@ class TramiteView extends BaseView {
     this.modalOpcionesDocumento = document.getElementById(
       'modalOpcionesDocumento'
     );
+    this.modalOpcionesHabilitado = document.getElementById(
+      'modalOpcionesHabilitado'
+    );
     this.form = document.getElementById('formCrearTramite');
     this.currentTramiteId = null;
     this.currentDocumentoId = null;
+    this.currentHabilitadoId = null;
   }
 
   /**
@@ -288,6 +292,7 @@ class TramiteView extends BaseView {
               <th class="text-center">Fin Corrección</th>
               <th class="text-center">Fecha Creación</th>
               <th class="text-center">Estado</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -300,6 +305,8 @@ class TramiteView extends BaseView {
     `;
 
     this.container.innerHTML = tableHTML;
+    this.initializeTooltips();
+    this.setupOpcionesHabilitadoButtons();
   }
 
   /**
@@ -363,6 +370,14 @@ class TramiteView extends BaseView {
           <span class="badge ${this.getEstadoBadgeClass(tramite.estado)}">
             ${this.escapeHtml(tramite.estado || 'Activo')}
           </span>
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-action btn-opciones-habilitado" 
+                  data-habilitado-id="${tramite.id}"
+                  data-bs-toggle="tooltip" 
+                  title="Más opciones">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
         </td>
       </tr>
     `;
@@ -542,6 +557,29 @@ class TramiteView extends BaseView {
     }
 
     const modal = new bootstrap.Modal(this.modalOpcionesDocumento);
+    modal.show();
+  }
+
+  /**
+   * Muestra el modal de opciones para trámites habilitados
+   * @param {string} habilitadoId - ID del trámite habilitado
+   */
+  showOpcionesHabilitadoModal(habilitadoId) {
+    this.currentHabilitadoId = habilitadoId;
+
+    // Emitir evento para obtener el trámite habilitado del controlador
+    if (window.tramiteApp && window.tramiteApp.eventManager) {
+      window.tramiteApp.eventManager.emit('habilitado:getById', {
+        habilitadoId,
+        callback: habilitado => {
+          if (habilitado) {
+            // Trámite habilitado obtenido
+          }
+        },
+      });
+    }
+
+    const modal = new bootstrap.Modal(this.modalOpcionesHabilitado);
     modal.show();
   }
 
@@ -951,6 +989,32 @@ class TramiteView extends BaseView {
         if (window.tramiteApp && window.tramiteApp.eventManager) {
           window.tramiteApp.eventManager.emit('documento:showOpciones', {
             documentoId,
+          });
+        } else {
+          console.error(
+            '❌ No se puede emitir evento: tramiteApp o eventManager no disponible'
+          );
+        }
+      });
+    });
+  }
+
+  /**
+   * Configura los botones de opciones para trámites habilitados
+   */
+  setupOpcionesHabilitadoButtons() {
+    const opcionesButtons = this.container.querySelectorAll(
+      '.btn-opciones-habilitado'
+    );
+    opcionesButtons.forEach(button => {
+      button.addEventListener('click', e => {
+        e.preventDefault();
+        const habilitadoId = button.getAttribute('data-habilitado-id');
+
+        // Emitir evento para que el controlador lo maneje
+        if (window.tramiteApp && window.tramiteApp.eventManager) {
+          window.tramiteApp.eventManager.emit('habilitado:showOpciones', {
+            habilitadoId,
           });
         } else {
           console.error(
