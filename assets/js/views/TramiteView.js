@@ -1045,25 +1045,10 @@ class TramiteView extends BaseView {
     const opcionesButtons = this.container.querySelectorAll(
       '.btn-opciones-habilitado'
     );
-    console.log(
-      '🔍 Debug - botones habilitado encontrados:',
-      opcionesButtons.length
-    );
-
     opcionesButtons.forEach((button, index) => {
-      console.log(`🔍 Debug - botón habilitado ${index}:`, button);
-      console.log(
-        `🔍 Debug - data-habilitado-id del botón ${index}:`,
-        button.getAttribute('data-habilitado-id')
-      );
-
       button.addEventListener('click', e => {
         e.preventDefault();
         const habilitadoId = button.getAttribute('data-habilitado-id');
-        console.log(
-          '🔍 Debug - habilitadoId extraído del botón:',
-          habilitadoId
-        );
 
         // Emitir evento para que el controlador lo maneje
         if (window.tramiteApp && window.tramiteApp.eventManager) {

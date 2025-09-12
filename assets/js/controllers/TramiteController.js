@@ -754,10 +754,6 @@ class TramiteController extends BaseController {
    * @param {string} habilitadoId - ID del trámite habilitado
    */
   showOpcionesHabilitado(habilitadoId) {
-    console.log(
-      '🔍 Debug - showOpcionesHabilitado llamado con ID:',
-      habilitadoId
-    );
     this.tramiteView.showOpcionesHabilitadoModal(habilitadoId);
   }
 
@@ -769,22 +765,12 @@ class TramiteController extends BaseController {
   getHabilitadoById(habilitadoId) {
     try {
       const habilitadosData = localStorage.getItem('habilitar_tramites');
-      console.log('🔍 Debug - habilitadosData:', habilitadosData);
-      console.log('🔍 Debug - habilitadoId buscado:', habilitadoId);
 
       if (!habilitadosData) {
-        console.log(
-          '❌ No hay datos en localStorage con key "habilitar_tramites"'
-        );
         return null;
       }
 
       const habilitados = JSON.parse(habilitadosData);
-      console.log('🔍 Debug - habilitados parseados:', habilitados);
-      console.log(
-        '🔍 Debug - IDs disponibles:',
-        habilitados.map(h => h.id)
-      );
 
       // Fix: Add missing IDs to records that don't have them
       let needsUpdate = false;
@@ -816,11 +802,6 @@ class TramiteController extends BaseController {
    * Edita un trámite habilitado
    */
   editarHabilitado() {
-    console.log(
-      '🔍 Debug - currentHabilitadoId:',
-      this.tramiteView.currentHabilitadoId
-    );
-
     if (!this.tramiteView.currentHabilitadoId) {
       console.error('❌ No hay trámite habilitado seleccionado para editar');
       return;
@@ -829,7 +810,6 @@ class TramiteController extends BaseController {
     const habilitado = this.getHabilitadoById(
       this.tramiteView.currentHabilitadoId
     );
-    console.log('🔍 Debug - habilitado obtenido:', habilitado);
 
     if (!habilitado) {
       console.error('❌ Trámite habilitado no encontrado');
@@ -962,10 +942,6 @@ class TramiteController extends BaseController {
       localStorage.setItem(
         'habilitar_tramites',
         JSON.stringify(fixedHabilitados)
-      );
-
-      console.log(
-        `✅ Estado del trámite habilitado actualizado a: ${nuevoEstado}`
       );
     } catch (error) {
       console.error(

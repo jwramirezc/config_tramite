@@ -428,16 +428,18 @@ class HabilitarTramiteView extends BaseView {
    * @param {Object} data - Datos del evento
    */
   emitEvent(eventName, data) {
-    if (window.eventManager) {
-      window.eventManager.emit(eventName, data);
+    if (window.tramiteApp && window.tramiteApp.eventManager) {
+      window.tramiteApp.eventManager.emit(eventName, data);
     } else {
       console.error(
-        '❌ EventManager no está disponible en window.eventManager'
+        '❌ EventManager no está disponible en window.tramiteApp.eventManager'
       );
 
       // Intentar llamar directamente al controlador como fallback
-      if (window.habilitarTramiteController) {
-        window.habilitarTramiteController.guardarHabilitarTramite(data);
+      if (window.tramiteApp && window.tramiteApp.habilitarTramiteController) {
+        window.tramiteApp.habilitarTramiteController.guardarHabilitarTramite(
+          data
+        );
       } else {
         console.error('❌ Controlador tampoco está disponible');
       }
