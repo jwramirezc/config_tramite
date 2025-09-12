@@ -148,6 +148,16 @@ class TramiteController extends BaseController {
       });
     }
 
+    // Botón duplicar habilitado
+    const btnDuplicarHabilitado = document.getElementById(
+      'btnDuplicarHabilitado'
+    );
+    if (btnDuplicarHabilitado) {
+      btnDuplicarHabilitado.addEventListener('click', () => {
+        this.duplicarHabilitado();
+      });
+    }
+
     // Botón toggle estado habilitado
     const btnToggleEstadoHabilitado = document.getElementById(
       'btnToggleEstadoHabilitado'
@@ -840,6 +850,87 @@ class TramiteController extends BaseController {
       );
     } else {
       console.error('❌ HabilitarTramiteView no está disponible');
+    }
+  }
+
+  /**
+   * Duplica un trámite habilitado con estado "Inactivo"
+   */
+  duplicarHabilitado() {
+    if (!this.tramiteView.currentHabilitadoId) {
+      console.error('❌ No hay ID de trámite habilitado seleccionado');
+      return;
+    }
+
+    const habilitadoOriginal = this.getHabilitadoById(
+      this.tramiteView.currentHabilitadoId
+    );
+    if (!habilitadoOriginal) {
+      console.error('❌ Trámite habilitado no encontrado');
+      return;
+    }
+
+    // Crear una copia del trámite habilitado
+    const habilitadoDuplicado = {
+      periodoAcademico: habilitadoOriginal.periodoAcademico,
+      semestre: habilitadoOriginal.semestre,
+      sede: habilitadoOriginal.sede,
+      tramiteId: habilitadoOriginal.tramiteId,
+      tramiteNombre: habilitadoOriginal.tramiteNombre,
+      fechaInicio: habilitadoOriginal.fechaInicio,
+      fechaFinalizacion: habilitadoOriginal.fechaFinalizacion,
+      fechaInicioCorreccion: habilitadoOriginal.fechaInicioCorreccion,
+      fechaFinCorreccion: habilitadoOriginal.fechaFinCorreccion,
+      estado: 'Inactivo', // Estado por defecto para duplicados
+      fechaModificacion: new Date().toISOString(),
+    };
+
+    // Crear el trámite habilitado duplicado usando el modelo
+    const habilitarTramiteDuplicado = new HabilitarTramite(habilitadoDuplicado);
+
+    // Guardar en localStorage
+    this.guardarHabilitadoDuplicado(habilitarTramiteDuplicado);
+
+    // Cerrar el modal de opciones
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById('modalOpcionesHabilitado')
+    );
+    if (modal) {
+      modal.hide();
+    }
+
+    // Refrescar el reporte
+    if (window.tramiteApp && window.tramiteApp.tramiteView) {
+      window.tramiteApp.tramiteView.renderTramitesHabilitadosReport();
+    }
+
+    // Mostrar mensaje de confirmación
+    if (window.tramiteApp && window.tramiteApp.tramiteView) {
+      window.tramiteApp.tramiteView.showAlert(
+        'Trámite duplicado exitosamente con estado Inactivo',
+        'success'
+      );
+    }
+  }
+
+  /**
+   * Guarda un trámite habilitado duplicado en localStorage
+   * @param {HabilitarTramite} habilitarTramite - Trámite habilitado duplicado
+   */
+  guardarHabilitadoDuplicado(habilitarTramite) {
+    try {
+      const habilitadosData = localStorage.getItem('habilitar_tramites');
+      const habilitados = habilitadosData ? JSON.parse(habilitadosData) : [];
+
+      // Agregar el trámite duplicado
+      habilitados.push(habilitarTramite);
+
+      // Guardar en localStorage
+      localStorage.setItem('habilitar_tramites', JSON.stringify(habilitados));
+
+      console.log('✅ Trámite habilitado duplicado guardado exitosamente');
+    } catch (error) {
+      console.error('Error al guardar trámite habilitado duplicado:', error);
     }
   }
 
