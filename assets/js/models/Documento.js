@@ -15,7 +15,6 @@ class Documento {
     this.areaSolicitante = data.areaSolicitante || '';
     this.responsableValidacion = data.responsableValidacion || '';
     this.datosRequeridos = data.datosRequeridos || [];
-    this.fechaCreacion = data.fechaCreacion || new Date().toISOString();
     this.fechaModificacion = data.fechaModificacion || new Date().toISOString();
     this.estado = data.estado || 'activo';
     this.observaciones = data.observaciones || '';
@@ -181,7 +180,6 @@ class Documento {
       areaSolicitante: this.areaSolicitante,
       responsableValidacion: this.responsableValidacion,
       datosRequeridos: this.datosRequeridos,
-      fechaCreacion: this.fechaCreacion,
       fechaModificacion: this.fechaModificacion,
       estado: this.estado,
       observaciones: this.observaciones,
@@ -406,7 +404,6 @@ class Documento {
       Estado: ${this.estado}
       Versión: ${this.version}
       Etiquetas: ${this.tags.join(', ')}
-      Creado: ${this.formatDate(this.fechaCreacion)}
       Modificado: ${this.formatDate(this.fechaModificacion)}
     `.trim();
   }

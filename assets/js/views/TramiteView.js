@@ -9,8 +9,12 @@ class TramiteView extends BaseView {
     this.reportTitle = document.getElementById('reportTitle');
     this.modalCrear = document.getElementById('modalCrearTramite');
     this.modalOpciones = document.getElementById('modalOpcionesTramite');
+    this.modalOpcionesDocumento = document.getElementById(
+      'modalOpcionesDocumento'
+    );
     this.form = document.getElementById('formCrearTramite');
     this.currentTramiteId = null;
+    this.currentDocumentoId = null;
   }
 
   /**
@@ -161,7 +165,7 @@ class TramiteView extends BaseView {
               <th class="text-center">Formato</th>
               <th class="text-center">Tamaño (MB)</th>
               <th class="text-center">Obligatorio</th>
-              <th class="text-center">Fecha Creación</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -174,6 +178,8 @@ class TramiteView extends BaseView {
     `;
 
     this.container.innerHTML = tableHTML;
+    this.initializeTooltips();
+    this.setupOpcionesDocumentoButtons();
   }
 
   /**
@@ -227,11 +233,16 @@ class TramiteView extends BaseView {
         <td class="text-center">
           ${this.escapeHtml(documento.obligatoriedad || 'No')}
         </td>
-                <td class="text-center">
-          <small>${this.formatDate(documento.fechaCreacion)}</small>
-                </td>
-            </tr>
-        `;
+        <td class="text-center">
+          <button class="btn btn-sm btn-action btn-opciones-documento" 
+                  data-documento-id="${documento.id}"
+                  data-bs-toggle="tooltip" 
+                  title="Más opciones">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+        </td>
+      </tr>
+    `;
   }
 
   /**
@@ -508,6 +519,29 @@ class TramiteView extends BaseView {
     }
 
     const modal = new bootstrap.Modal(this.modalOpciones);
+    modal.show();
+  }
+
+  /**
+   * Muestra el modal de opciones para documentos
+   * @param {string} documentoId - ID del documento
+   */
+  showOpcionesDocumentoModal(documentoId) {
+    this.currentDocumentoId = documentoId;
+
+    // Emitir evento para obtener el documento del controlador
+    if (window.tramiteApp && window.tramiteApp.eventManager) {
+      window.tramiteApp.eventManager.emit('documento:getById', {
+        documentoId,
+        callback: documento => {
+          if (documento) {
+            // Documento obtenido
+          }
+        },
+      });
+    }
+
+    const modal = new bootstrap.Modal(this.modalOpcionesDocumento);
     modal.show();
   }
 
@@ -891,6 +925,32 @@ class TramiteView extends BaseView {
         if (window.tramiteApp && window.tramiteApp.eventManager) {
           window.tramiteApp.eventManager.emit('tramite:showOpciones', {
             tramiteId,
+          });
+        } else {
+          console.error(
+            '❌ No se puede emitir evento: tramiteApp o eventManager no disponible'
+          );
+        }
+      });
+    });
+  }
+
+  /**
+   * Configura los botones de opciones para documentos
+   */
+  setupOpcionesDocumentoButtons() {
+    const opcionesButtons = this.container.querySelectorAll(
+      '.btn-opciones-documento'
+    );
+    opcionesButtons.forEach(button => {
+      button.addEventListener('click', e => {
+        e.preventDefault();
+        const documentoId = button.getAttribute('data-documento-id');
+
+        // Emitir evento para que el controlador lo maneje
+        if (window.tramiteApp && window.tramiteApp.eventManager) {
+          window.tramiteApp.eventManager.emit('documento:showOpciones', {
+            documentoId,
           });
         } else {
           console.error(

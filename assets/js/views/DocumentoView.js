@@ -516,6 +516,477 @@ class DocumentoView extends BaseView {
   }
 
   /**
+   * Muestra el modal para editar un documento existente
+   * @param {Object} documento - Documento a editar
+   */
+  showEditarDocumentoModal(documento) {
+    const modalHTML = `
+      <div class="modal fade" id="modalCrearDocumento" tabindex="-1" aria-labelledby="modalCrearDocumentoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalCrearDocumentoLabel">
+                <i class="fas fa-edit me-2"></i>
+                Editar Documento
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="formCrearDocumento">
+                <!-- Nombre del Documento -->
+                <div class="mb-3">
+                  <label for="nombreDocumento" class="form-label">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Nombre del Documento
+                  </label>
+                  <input type="text" class="form-control" id="nombreDocumento" 
+                         placeholder="Ingrese el nombre del documento" 
+                         value="${this.escapeHtml(
+                           documento.nombreDocumento || ''
+                         )}" required>
+                </div>
+
+                <!-- Tipo Documental -->
+                <div class="mb-3">
+                  <label for="tipoDocumental" class="form-label">
+                    <i class="fas fa-tags me-1"></i>
+                    Tipo Documental
+                  </label>
+                  <select class="form-select" id="tipoDocumental" required>
+                    <option value="">Seleccione un tipo documental</option>
+                    <option value="Solicitud" ${
+                      documento.tipoDocumental === 'Solicitud' ? 'selected' : ''
+                    }>Solicitud</option>
+                    <option value="Certificado" ${
+                      documento.tipoDocumental === 'Certificado'
+                        ? 'selected'
+                        : ''
+                    }>Certificado</option>
+                    <option value="Constancia" ${
+                      documento.tipoDocumental === 'Constancia'
+                        ? 'selected'
+                        : ''
+                    }>Constancia</option>
+                    <option value="Carné" ${
+                      documento.tipoDocumental === 'Carné' ? 'selected' : ''
+                    }>Carné</option>
+                    <option value="Diploma" ${
+                      documento.tipoDocumental === 'Diploma' ? 'selected' : ''
+                    }>Diploma</option>
+                    <option value="Acta" ${
+                      documento.tipoDocumental === 'Acta' ? 'selected' : ''
+                    }>Acta</option>
+                    <option value="Informe" ${
+                      documento.tipoDocumental === 'Informe' ? 'selected' : ''
+                    }>Informe</option>
+                    <option value="Resolución" ${
+                      documento.tipoDocumental === 'Resolución'
+                        ? 'selected'
+                        : ''
+                    }>Resolución</option>
+                    <option value="Circular" ${
+                      documento.tipoDocumental === 'Circular' ? 'selected' : ''
+                    }>Circular</option>
+                    <option value="Memorando" ${
+                      documento.tipoDocumental === 'Memorando' ? 'selected' : ''
+                    }>Memorando</option>
+                    <option value="Otro" ${
+                      documento.tipoDocumental === 'Otro' ? 'selected' : ''
+                    }>Otro</option>
+                  </select>
+                </div>
+
+                <!-- Descripción del Documento -->
+                <div class="mb-3">
+                  <label for="descripcionDocumento" class="form-label">
+                    <i class="fas fa-align-left me-1"></i>
+                    Descripción del Documento
+                  </label>
+                  <textarea class="form-control" id="descripcionDocumento" rows="3" 
+                            placeholder="Ingrese una descripción que permita ayudar a diligenciar)" required>${this.escapeHtml(
+                              documento.descripcionDocumento || ''
+                            )}</textarea>
+                </div>
+
+                <!-- Área Solicitante -->
+                <div class="mb-3">
+                  <label for="areaSolicitante" class="form-label">
+                    <i class="fas fa-building me-1"></i>
+                    Área Solicitante
+                  </label>
+                  <select class="form-select" id="areaSolicitante" required>
+                    <option value="">Seleccione un área</option>
+                    <option value="Rectoría" ${
+                      documento.areaSolicitante === 'Rectoría' ? 'selected' : ''
+                    }>Rectoría</option>
+                    <option value="Vicerrectoría Académica" ${
+                      documento.areaSolicitante === 'Vicerrectoría Académica'
+                        ? 'selected'
+                        : ''
+                    }>Vicerrectoría Académica</option>
+                    <option value="Vicerrectoría Administrativa" ${
+                      documento.areaSolicitante ===
+                      'Vicerrectoría Administrativa'
+                        ? 'selected'
+                        : ''
+                    }>Vicerrectoría Administrativa</option>
+                    <option value="Vicerrectoría de Investigación" ${
+                      documento.areaSolicitante ===
+                      'Vicerrectoría de Investigación'
+                        ? 'selected'
+                        : ''
+                    }>Vicerrectoría de Investigación</option>
+                    <option value="Vicerrectoría de Extensión" ${
+                      documento.areaSolicitante === 'Vicerrectoría de Extensión'
+                        ? 'selected'
+                        : ''
+                    }>Vicerrectoría de Extensión</option>
+                    <option value="Decanatura de Ingeniería" ${
+                      documento.areaSolicitante === 'Decanatura de Ingeniería'
+                        ? 'selected'
+                        : ''
+                    }>Decanatura de Ingeniería</option>
+                    <option value="Decanatura de Ciencias" ${
+                      documento.areaSolicitante === 'Decanatura de Ciencias'
+                        ? 'selected'
+                        : ''
+                    }>Decanatura de Ciencias</option>
+                    <option value="Decanatura de Humanidades" ${
+                      documento.areaSolicitante === 'Decanatura de Humanidades'
+                        ? 'selected'
+                        : ''
+                    }>Decanatura de Humanidades</option>
+                    <option value="Decanatura de Ciencias Económicas" ${
+                      documento.areaSolicitante ===
+                      'Decanatura de Ciencias Económicas'
+                        ? 'selected'
+                        : ''
+                    }>Decanatura de Ciencias Económicas</option>
+                    <option value="Decanatura de Ciencias de la Salud" ${
+                      documento.areaSolicitante ===
+                      'Decanatura de Ciencias de la Salud'
+                        ? 'selected'
+                        : ''
+                    }>Decanatura de Ciencias de la Salud</option>
+                    <option value="Registro Académico" ${
+                      documento.areaSolicitante === 'Registro Académico'
+                        ? 'selected'
+                        : ''
+                    }>Registro Académico</option>
+                    <option value="Admisiones" ${
+                      documento.areaSolicitante === 'Admisiones'
+                        ? 'selected'
+                        : ''
+                    }>Admisiones</option>
+                    <option value="Bienestar Universitario" ${
+                      documento.areaSolicitante === 'Bienestar Universitario'
+                        ? 'selected'
+                        : ''
+                    }>Bienestar Universitario</option>
+                    <option value="Biblioteca" ${
+                      documento.areaSolicitante === 'Biblioteca'
+                        ? 'selected'
+                        : ''
+                    }>Biblioteca</option>
+                    <option value="Tecnología e Informática" ${
+                      documento.areaSolicitante === 'Tecnología e Informática'
+                        ? 'selected'
+                        : ''
+                    }>Tecnología e Informática</option>
+                    <option value="Recursos Humanos" ${
+                      documento.areaSolicitante === 'Recursos Humanos'
+                        ? 'selected'
+                        : ''
+                    }>Recursos Humanos</option>
+                    <option value="Contabilidad" ${
+                      documento.areaSolicitante === 'Contabilidad'
+                        ? 'selected'
+                        : ''
+                    }>Contabilidad</option>
+                    <option value="Planeación" ${
+                      documento.areaSolicitante === 'Planeación'
+                        ? 'selected'
+                        : ''
+                    }>Planeación</option>
+                    <option value="Calidad" ${
+                      documento.areaSolicitante === 'Calidad' ? 'selected' : ''
+                    }>Calidad</option>
+                    <option value="Posgrados" ${
+                      documento.areaSolicitante === 'Posgrados'
+                        ? 'selected'
+                        : ''
+                    }>Posgrados</option>
+                    <option value="Investigación" ${
+                      documento.areaSolicitante === 'Investigación'
+                        ? 'selected'
+                        : ''
+                    }>Investigación</option>
+                    <option value="Extensión" ${
+                      documento.areaSolicitante === 'Extensión'
+                        ? 'selected'
+                        : ''
+                    }>Extensión</option>
+                    <option value="Internacionalización" ${
+                      documento.areaSolicitante === 'Internacionalización'
+                        ? 'selected'
+                        : ''
+                    }>Internacionalización</option>
+                    <option value="Otro" ${
+                      documento.areaSolicitante === 'Otro' ? 'selected' : ''
+                    }>Otro</option>
+                  </select>
+                </div>
+
+                <!-- Responsable de Validación -->
+                <div class="mb-3">
+                  <label for="responsableValidacion" class="form-label">
+                    <i class="fas fa-user-check me-1"></i>
+                    Responsable de Validación
+                  </label>
+                  <select class="form-select" id="responsableValidacion" required>
+                    <option value="">Seleccione un responsable</option>
+                    <option value="VALIDADOR_ADMISIONES" ${
+                      documento.responsableValidacion === 'VALIDADOR_ADMISIONES'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_ADMISIONES</option>
+                    <option value="VALIDADOR_REGISTRO" ${
+                      documento.responsableValidacion === 'VALIDADOR_REGISTRO'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_REGISTRO</option>
+                    <option value="VALIDADOR_BIENESTAR" ${
+                      documento.responsableValidacion === 'VALIDADOR_BIENESTAR'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_BIENESTAR</option>
+                    <option value="VALIDADOR_BIBLIOTECA" ${
+                      documento.responsableValidacion === 'VALIDADOR_BIBLIOTECA'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_BIBLIOTECA</option>
+                    <option value="VALIDADOR_TECNOLOGIA" ${
+                      documento.responsableValidacion === 'VALIDADOR_TECNOLOGIA'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_TECNOLOGIA</option>
+                    <option value="VALIDADOR_RRHH" ${
+                      documento.responsableValidacion === 'VALIDADOR_RRHH'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_RRHH</option>
+                    <option value="VALIDADOR_CONTABILIDAD" ${
+                      documento.responsableValidacion ===
+                      'VALIDADOR_CONTABILIDAD'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_CONTABILIDAD</option>
+                    <option value="VALIDADOR_PLANEACION" ${
+                      documento.responsableValidacion === 'VALIDADOR_PLANEACION'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_PLANEACION</option>
+                    <option value="VALIDADOR_CALIDAD" ${
+                      documento.responsableValidacion === 'VALIDADOR_CALIDAD'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_CALIDAD</option>
+                    <option value="VALIDADOR_POSGRADOS" ${
+                      documento.responsableValidacion === 'VALIDADOR_POSGRADOS'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_POSGRADOS</option>
+                    <option value="VALIDADOR_INVESTIGACION" ${
+                      documento.responsableValidacion ===
+                      'VALIDADOR_INVESTIGACION'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_INVESTIGACION</option>
+                    <option value="VALIDADOR_EXTENSION" ${
+                      documento.responsableValidacion === 'VALIDADOR_EXTENSION'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_EXTENSION</option>
+                    <option value="VALIDADOR_INTERNACIONALIZACION" ${
+                      documento.responsableValidacion ===
+                      'VALIDADOR_INTERNACIONALIZACION'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_INTERNACIONALIZACION</option>
+                    <option value="VALIDADOR_GENERAL" ${
+                      documento.responsableValidacion === 'VALIDADOR_GENERAL'
+                        ? 'selected'
+                        : ''
+                    }>VALIDADOR_GENERAL</option>
+                  </select>
+                </div>
+
+                <!-- Tipo de Formato Esperado -->
+                <div class="mb-3">
+                  <label for="tipoFormatoEsperado" class="form-label">
+                    <i class="fas fa-file me-1"></i>
+                    Tipo de Formato Esperado
+                  </label>
+                  <input type="text" class="form-control" id="tipoFormatoEsperado" 
+                         placeholder="Ej: PDF, DOC, DOCX, JPG, PNG" 
+                         value="${this.escapeHtml(
+                           documento.tipoFormatoEsperado || ''
+                         )}" required>
+                </div>
+
+                <!-- Tamaño Máximo Permitido -->
+                <div class="mb-3">
+                  <label for="tamanoMaximoPermitido" class="form-label">
+                    <i class="fas fa-weight me-1"></i>
+                    Tamaño Máximo Permitido (MB)
+                  </label>
+                  <input type="number" class="form-control" id="tamanoMaximoPermitido" 
+                         placeholder="Ej: 5" min="1" max="100" 
+                         value="${
+                           documento.tamanoMaximoPermitido || ''
+                         }" required>
+                </div>
+
+                <!-- ¿Es obligatorio? -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    ¿Es obligatorio?
+                  </label>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="obligatoriedad" id="obligatoriedadSi" value="Sí" ${
+                          documento.obligatoriedad === 'Sí' ? 'checked' : ''
+                        } required>
+                        <label class="form-check-label" for="obligatoriedadSi">
+                          Sí
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="obligatoriedad" id="obligatoriedadNo" value="No" ${
+                          documento.obligatoriedad === 'No' ? 'checked' : ''
+                        } required>
+                        <label class="form-check-label" for="obligatoriedadNo">
+                          No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ¿Requiere aprobación? -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="fas fa-check-circle me-1"></i>
+                    ¿Requiere aprobación?
+                  </label>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="requiereAprobacion" id="requiereAprobacionSi" value="Sí" ${
+                          documento.requiereAprobacion === 'Sí' ? 'checked' : ''
+                        } required>
+                        <label class="form-check-label" for="requiereAprobacionSi">
+                          Sí
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="requiereAprobacion" id="requiereAprobacionNo" value="No" ${
+                          documento.requiereAprobacion === 'No' ? 'checked' : ''
+                        } required>
+                        <label class="form-check-label" for="requiereAprobacionNo">
+                          No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vigencia en días -->
+                <div class="mb-3">
+                  <label for="vigenciaEnDias" class="form-label">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    Vigencia en días
+                  </label>
+                  <input type="number" class="form-control" id="vigenciaEnDias" 
+                         placeholder="Ingrese el número de días" min="0" 
+                         value="${documento.vigenciaEnDias || ''}" required>
+                </div>
+
+                <!-- ¿Permite plazos ampliados? -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="fas fa-clock me-1"></i>
+                    ¿Permite plazos ampliados?
+                  </label>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="permitePlazosAmpliados" id="permitePlazosAmpliadosSi" value="Sí" ${
+                          documento.permitePlazosAmpliados === 'Sí'
+                            ? 'checked'
+                            : ''
+                        } required>
+                        <label class="form-check-label" for="permitePlazosAmpliadosSi">
+                          Sí
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="permitePlazosAmpliados" id="permitePlazosAmpliadosNo" value="No" ${
+                          documento.permitePlazosAmpliados === 'No'
+                            ? 'checked'
+                            : ''
+                        } required>
+                        <label class="form-check-label" for="permitePlazosAmpliadosNo">
+                          No
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Cancelar
+              </button>
+              <button type="button" class="btn btn-primary" id="btnGuardarDocumento">
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Insertar modal en el DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Mostrar modal
+    const modal = document.getElementById('modalCrearDocumento');
+    const bsModal = new bootstrap.Modal(modal);
+
+    // Configurar eventos del modal DESPUÉS de que se haya insertado en el DOM
+    setTimeout(() => {
+      this.setupEditarDocumentoModalEvents(documento.id);
+    }, 100);
+
+    bsModal.show();
+
+    // Limpiar modal después de cerrar
+    modal.addEventListener('hidden.bs.modal', () => {
+      modal.remove();
+    });
+  }
+
+  /**
    * Configura los eventos del modal de crear documento
    */
   setupCrearDocumentoModalEvents() {
@@ -537,6 +1008,32 @@ class DocumentoView extends BaseView {
       form.addEventListener('submit', e => {
         e.preventDefault();
         this.guardarDocumento();
+      });
+    } else {
+      console.error('❌ Formulario no encontrado');
+    }
+  }
+
+  /**
+   * Configura los eventos del modal de editar documento
+   * @param {string} documentoId - ID del documento a editar
+   */
+  setupEditarDocumentoModalEvents(documentoId) {
+    const btnGuardarDocumento = document.getElementById('btnGuardarDocumento');
+    const form = document.getElementById('formCrearDocumento');
+
+    if (btnGuardarDocumento) {
+      btnGuardarDocumento.addEventListener('click', () => {
+        this.actualizarDocumento(documentoId);
+      });
+    } else {
+      console.error('❌ Botón Guardar Documento no encontrado');
+    }
+
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        this.actualizarDocumento(documentoId);
       });
     } else {
       console.error('❌ Formulario no encontrado');
@@ -906,5 +1403,119 @@ class DocumentoView extends BaseView {
    */
   generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  /**
+   * Actualiza un documento existente
+   * @param {string} documentoId - ID del documento a actualizar
+   */
+  actualizarDocumento(documentoId) {
+    const form = document.getElementById('formCrearDocumento');
+    if (!form) {
+      console.error('❌ Formulario no encontrado');
+      this.showAlert('Error: Formulario no encontrado', 'danger');
+      return;
+    }
+
+    // Obtener datos del formulario
+    const formData = {
+      nombreDocumento: document.getElementById('nombreDocumento').value.trim(),
+      tipoDocumental: document.getElementById('tipoDocumental').value,
+      descripcionDocumento: document
+        .getElementById('descripcionDocumento')
+        .value.trim(),
+      areaSolicitante: document.getElementById('areaSolicitante').value,
+      responsableValidacion: document.getElementById('responsableValidacion')
+        .value,
+      tipoFormatoEsperado: document
+        .getElementById('tipoFormatoEsperado')
+        .value.trim(),
+      tamanoMaximoPermitido: (() => {
+        const campo = document.getElementById('tamanoMaximoPermitido');
+        const valor = campo ? campo.value.trim() : '';
+        return valor;
+      })(),
+      obligatoriedad: document.querySelector(
+        'input[name="obligatoriedad"]:checked'
+      )?.value,
+      requiereAprobacion: document.querySelector(
+        'input[name="requiereAprobacion"]:checked'
+      )?.value,
+      vigenciaEnDias: document.getElementById('vigenciaEnDias').value,
+      permitePlazosAmpliados: document.querySelector(
+        'input[name="permitePlazosAmpliados"]:checked'
+      )?.value,
+    };
+
+    // Validar campos requeridos
+    const requiredFields = [
+      'nombreDocumento',
+      'tipoDocumental',
+      'descripcionDocumento',
+      'areaSolicitante',
+      'responsableValidacion',
+      'tipoFormatoEsperado',
+      'tamanoMaximoPermitido',
+      'obligatoriedad',
+      'requiereAprobacion',
+      'vigenciaEnDias',
+      'permitePlazosAmpliados',
+    ];
+
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    if (missingFields.length > 0) {
+      this.showAlert(
+        `Por favor complete los siguientes campos: ${missingFields.join(', ')}`,
+        'warning'
+      );
+      return;
+    }
+
+    try {
+      // Obtener documentos existentes
+      const documentosData = localStorage.getItem('documentos_tramites');
+      let documentos = documentosData ? JSON.parse(documentosData) : [];
+
+      // Buscar el documento a actualizar
+      const documentoIndex = documentos.findIndex(
+        doc => doc.id === documentoId
+      );
+      if (documentoIndex === -1) {
+        this.showAlert('Documento no encontrado', 'danger');
+        return;
+      }
+
+      // Actualizar el documento
+      const documentoActualizado = {
+        ...documentos[documentoIndex],
+        ...formData,
+        fechaModificacion: new Date().toISOString(),
+      };
+
+      documentos[documentoIndex] = documentoActualizado;
+
+      // Guardar en localStorage
+      localStorage.setItem('documentos_tramites', JSON.stringify(documentos));
+
+      // Mostrar mensaje de éxito
+      this.showAlert('Documento actualizado exitosamente', 'success');
+
+      // Cerrar modal
+      const modal = document.getElementById('modalCrearDocumento');
+      if (modal) {
+        const bsModal = bootstrap.Modal.getInstance(modal);
+        if (bsModal) {
+          bsModal.hide();
+        }
+      }
+
+      // Refrescar el reporte de documentos
+      if (window.tramiteApp && window.tramiteApp.tramiteView) {
+        window.tramiteApp.tramiteView.renderDocumentosReport();
+      }
+    } catch (error) {
+      console.error('Error al actualizar documento:', error);
+      this.showAlert('Error al actualizar el documento', 'danger');
+    }
   }
 }

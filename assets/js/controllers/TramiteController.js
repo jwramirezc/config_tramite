@@ -107,6 +107,26 @@ class TramiteController extends BaseController {
     this.eventManager.on('tramite:guardarFechas', async data => {
       await this.guardarFechas(data.formData);
     });
+
+    // Event listeners para documentos
+    this.eventManager.on('documento:showOpciones', data => {
+      this.showOpcionesDocumento(data.documentoId);
+    });
+
+    this.eventManager.on('documento:getById', data => {
+      const documento = this.getDocumentoById(data.documentoId);
+      if (data.callback && typeof data.callback === 'function') {
+        data.callback(documento);
+      }
+    });
+
+    // Botón editar documento
+    const btnEditarDocumento = document.getElementById('btnEditarDocumento');
+    if (btnEditarDocumento) {
+      btnEditarDocumento.addEventListener('click', () => {
+        this.editarDocumento();
+      });
+    }
   }
 
   /**
@@ -637,5 +657,65 @@ class TramiteController extends BaseController {
    */
   refresh() {
     this.loadTramites();
+  }
+
+  /**
+   * Muestra las opciones de un documento
+   * @param {string} documentoId - ID del documento
+   */
+  showOpcionesDocumento(documentoId) {
+    this.tramiteView.showOpcionesDocumentoModal(documentoId);
+  }
+
+  /**
+   * Obtiene un documento por ID
+   * @param {string} documentoId - ID del documento
+   * @returns {Object|null} Documento encontrado o null
+   */
+  getDocumentoById(documentoId) {
+    try {
+      const documentosData = localStorage.getItem('documentos_tramites');
+      if (!documentosData) return null;
+
+      const documentos = JSON.parse(documentosData);
+      return documentos.find(doc => doc.id === documentoId) || null;
+    } catch (error) {
+      console.error('Error al obtener documento:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Edita un documento
+   */
+  editarDocumento() {
+    if (!this.tramiteView.currentDocumentoId) {
+      console.error('❌ No hay documento seleccionado para editar');
+      return;
+    }
+
+    const documento = this.getDocumentoById(
+      this.tramiteView.currentDocumentoId
+    );
+    if (!documento) {
+      console.error('❌ Documento no encontrado');
+      return;
+    }
+
+    // Cerrar el modal de opciones
+    const modalOpciones = document.getElementById('modalOpcionesDocumento');
+    if (modalOpciones) {
+      const bsModal = bootstrap.Modal.getInstance(modalOpciones);
+      if (bsModal) {
+        bsModal.hide();
+      }
+    }
+
+    // Mostrar el modal de crear documento con datos precargados
+    if (window.tramiteApp && window.tramiteApp.documentoView) {
+      window.tramiteApp.documentoView.showEditarDocumentoModal(documento);
+    } else {
+      console.error('❌ DocumentoView no está disponible');
+    }
   }
 }
