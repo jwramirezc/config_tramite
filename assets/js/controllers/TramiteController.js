@@ -147,6 +147,16 @@ class TramiteController extends BaseController {
         this.editarHabilitado();
       });
     }
+
+    // Botón toggle estado habilitado
+    const btnToggleEstadoHabilitado = document.getElementById(
+      'btnToggleEstadoHabilitado'
+    );
+    if (btnToggleEstadoHabilitado) {
+      btnToggleEstadoHabilitado.addEventListener('click', () => {
+        this.toggleEstadoHabilitado();
+      });
+    }
   }
 
   /**
@@ -842,6 +852,126 @@ class TramiteController extends BaseController {
       );
     } else {
       console.error('❌ HabilitarTramiteView no está disponible');
+    }
+  }
+
+  /**
+   * Alterna el estado de un trámite habilitado entre activo e inactivo
+   */
+  toggleEstadoHabilitado() {
+    if (!this.tramiteView.currentHabilitadoId) {
+      console.error('❌ No hay ID de trámite habilitado seleccionado');
+      return;
+    }
+
+    const habilitado = this.getHabilitadoById(
+      this.tramiteView.currentHabilitadoId
+    );
+    if (!habilitado) {
+      console.error('❌ Trámite habilitado no encontrado');
+      return;
+    }
+
+    // Determinar el nuevo estado
+    const nuevoEstado =
+      habilitado.estado === 'activo' || habilitado.estado === 'Activo'
+        ? 'inactivo'
+        : 'activo';
+
+    // Actualizar el estado en localStorage
+    this.actualizarEstadoHabilitado(
+      this.tramiteView.currentHabilitadoId,
+      nuevoEstado
+    );
+
+    // Cerrar el modal de opciones
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById('modalOpcionesHabilitado')
+    );
+    if (modal) {
+      modal.hide();
+    }
+
+    // Refrescar el reporte
+    if (window.tramiteApp && window.tramiteApp.tramiteView) {
+      window.tramiteApp.tramiteView.renderTramitesHabilitadosReport();
+    }
+
+    // Mostrar mensaje de confirmación
+    const mensaje =
+      nuevoEstado === 'activo'
+        ? 'Trámite activado exitosamente'
+        : 'Trámite inactivado exitosamente';
+    if (window.tramiteApp && window.tramiteApp.tramiteView) {
+      window.tramiteApp.tramiteView.showAlert(mensaje, 'success');
+    }
+  }
+
+  /**
+   * Actualiza el estado de un trámite habilitado en localStorage
+   * @param {string} habilitadoId - ID del trámite habilitado
+   * @param {string} nuevoEstado - Nuevo estado (activo/inactivo)
+   */
+  actualizarEstadoHabilitado(habilitadoId, nuevoEstado) {
+    try {
+      const habilitadosData = localStorage.getItem('habilitar_tramites');
+      if (!habilitadosData) {
+        console.error(
+          '❌ No hay datos de trámites habilitados en localStorage'
+        );
+        return;
+      }
+
+      const habilitados = JSON.parse(habilitadosData);
+
+      // Fix: Add missing IDs to records that don't have them
+      let needsUpdate = false;
+      const fixedHabilitados = habilitados.map((hab, index) => {
+        if (!hab.id) {
+          hab.id = `habilitado_${Date.now()}_${index}`;
+          needsUpdate = true;
+        }
+        return hab;
+      });
+
+      // Update localStorage if we added missing IDs
+      if (needsUpdate) {
+        localStorage.setItem(
+          'habilitar_tramites',
+          JSON.stringify(fixedHabilitados)
+        );
+      }
+
+      const habilitadoIndex = fixedHabilitados.findIndex(
+        hab => hab.id === habilitadoId
+      );
+
+      if (habilitadoIndex === -1) {
+        console.error(
+          '❌ Trámite habilitado no encontrado para actualizar estado'
+        );
+        return;
+      }
+
+      // Actualizar el estado y fecha de modificación
+      fixedHabilitados[habilitadoIndex].estado = nuevoEstado;
+      fixedHabilitados[habilitadoIndex].fechaModificacion =
+        new Date().toISOString();
+
+      // Guardar en localStorage
+      localStorage.setItem(
+        'habilitar_tramites',
+        JSON.stringify(fixedHabilitados)
+      );
+
+      console.log(
+        `✅ Estado del trámite habilitado actualizado a: ${nuevoEstado}`
+      );
+    } catch (error) {
+      console.error(
+        'Error al actualizar estado del trámite habilitado:',
+        error
+      );
     }
   }
 }

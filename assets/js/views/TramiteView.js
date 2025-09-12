@@ -579,15 +579,7 @@ class TramiteView extends BaseView {
    * @param {string} habilitadoId - ID del trámite habilitado
    */
   showOpcionesHabilitadoModal(habilitadoId) {
-    console.log(
-      '🔍 Debug - showOpcionesHabilitadoModal llamado con ID:',
-      habilitadoId
-    );
     this.currentHabilitadoId = habilitadoId;
-    console.log(
-      '🔍 Debug - currentHabilitadoId establecido a:',
-      this.currentHabilitadoId
-    );
 
     // Emitir evento para obtener el trámite habilitado del controlador
     if (window.tramiteApp && window.tramiteApp.eventManager) {
@@ -595,11 +587,8 @@ class TramiteView extends BaseView {
         habilitadoId,
         callback: habilitado => {
           if (habilitado) {
-            // Trámite habilitado obtenido
-            console.log(
-              '🔍 Debug - trámite habilitado obtenido en callback:',
-              habilitado
-            );
+            // Actualizar el texto y icono del botón según el estado
+            this.updateToggleButtonState(habilitado.estado);
           }
         },
       });
@@ -607,6 +596,30 @@ class TramiteView extends BaseView {
 
     const modal = new bootstrap.Modal(this.modalOpcionesHabilitado);
     modal.show();
+  }
+
+  /**
+   * Actualiza el texto y icono del botón de toggle según el estado
+   * @param {string} estado - Estado actual del trámite habilitado
+   */
+  updateToggleButtonState(estado) {
+    const toggleButton = document.getElementById('btnToggleEstadoHabilitado');
+    const toggleText = document.getElementById('textoToggleEstado');
+    const toggleIcon = toggleButton.querySelector('i');
+
+    if (toggleButton && toggleText && toggleIcon) {
+      if (estado === 'activo' || estado === 'Activo') {
+        toggleText.textContent = 'Inactivar trámite';
+        toggleIcon.className = 'fas fa-toggle-off me-2';
+        toggleButton.classList.remove('text-warning');
+        toggleButton.classList.add('text-danger');
+      } else {
+        toggleText.textContent = 'Activar trámite';
+        toggleIcon.className = 'fas fa-toggle-on me-2';
+        toggleButton.classList.remove('text-danger');
+        toggleButton.classList.add('text-success');
+      }
+    }
   }
 
   /**
