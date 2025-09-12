@@ -772,17 +772,25 @@ class TramiteController extends BaseController {
 
       const habilitados = JSON.parse(habilitadosData);
 
-      // Fix: Add missing IDs to records that don't have them
+      // Fix: Add missing IDs and normalize states
       let needsUpdate = false;
       const fixedHabilitados = habilitados.map((hab, index) => {
         if (!hab.id) {
           hab.id = `habilitado_${Date.now()}_${index}`;
           needsUpdate = true;
         }
+        // Normalizar estados a "Activo" e "Inactivo"
+        if (hab.estado === 'activo') {
+          hab.estado = 'Activo';
+          needsUpdate = true;
+        } else if (hab.estado === 'inactivo') {
+          hab.estado = 'Inactivo';
+          needsUpdate = true;
+        }
         return hab;
       });
 
-      // Update localStorage if we added missing IDs
+      // Update localStorage if we added missing IDs or normalized states
       if (needsUpdate) {
         localStorage.setItem(
           'habilitar_tramites',
@@ -853,10 +861,7 @@ class TramiteController extends BaseController {
     }
 
     // Determinar el nuevo estado
-    const nuevoEstado =
-      habilitado.estado === 'activo' || habilitado.estado === 'Activo'
-        ? 'inactivo'
-        : 'activo';
+    const nuevoEstado = habilitado.estado === 'Activo' ? 'Inactivo' : 'Activo';
 
     // Actualizar el estado en localStorage
     this.actualizarEstadoHabilitado(
@@ -879,7 +884,7 @@ class TramiteController extends BaseController {
 
     // Mostrar mensaje de confirmación
     const mensaje =
-      nuevoEstado === 'activo'
+      nuevoEstado === 'Activo'
         ? 'Trámite activado exitosamente'
         : 'Trámite inactivado exitosamente';
     if (window.tramiteApp && window.tramiteApp.tramiteView) {
@@ -904,17 +909,25 @@ class TramiteController extends BaseController {
 
       const habilitados = JSON.parse(habilitadosData);
 
-      // Fix: Add missing IDs to records that don't have them
+      // Fix: Add missing IDs and normalize states
       let needsUpdate = false;
       const fixedHabilitados = habilitados.map((hab, index) => {
         if (!hab.id) {
           hab.id = `habilitado_${Date.now()}_${index}`;
           needsUpdate = true;
         }
+        // Normalizar estados a "Activo" e "Inactivo"
+        if (hab.estado === 'activo') {
+          hab.estado = 'Activo';
+          needsUpdate = true;
+        } else if (hab.estado === 'inactivo') {
+          hab.estado = 'Inactivo';
+          needsUpdate = true;
+        }
         return hab;
       });
 
-      // Update localStorage if we added missing IDs
+      // Update localStorage if we added missing IDs or normalized states
       if (needsUpdate) {
         localStorage.setItem(
           'habilitar_tramites',

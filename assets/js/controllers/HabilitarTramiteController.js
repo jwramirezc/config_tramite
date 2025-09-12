@@ -79,8 +79,9 @@ class HabilitarTramiteController {
           formData
         );
       } else {
-        // Crear el trámite habilitado
-        result = await this.habilitarTramiteService.create(formData);
+        // Crear el trámite habilitado usando el modelo para establecer estado por defecto
+        const habilitarTramite = HabilitarTramite.fromFormData(formData);
+        result = await this.habilitarTramiteService.create(habilitarTramite);
       }
 
       if (!result) {
@@ -303,17 +304,25 @@ class HabilitarTramiteController {
 
       const habilitados = JSON.parse(habilitadosData);
 
-      // Fix: Add missing IDs to records that don't have them
+      // Fix: Add missing IDs and normalize states
       let needsUpdate = false;
       const fixedHabilitados = habilitados.map((hab, index) => {
         if (!hab.id) {
           hab.id = `habilitado_${Date.now()}_${index}`;
           needsUpdate = true;
         }
+        // Normalizar estados a "Activo" e "Inactivo"
+        if (hab.estado === 'activo') {
+          hab.estado = 'Activo';
+          needsUpdate = true;
+        } else if (hab.estado === 'inactivo') {
+          hab.estado = 'Inactivo';
+          needsUpdate = true;
+        }
         return hab;
       });
 
-      // Update localStorage if we added missing IDs
+      // Update localStorage if we added missing IDs or normalized states
       if (needsUpdate) {
         localStorage.setItem(
           'habilitar_tramites',

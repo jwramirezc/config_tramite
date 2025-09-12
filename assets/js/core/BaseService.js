@@ -207,8 +207,11 @@ class BaseService {
         };
       }
 
+      // Usar el objeto validado si está disponible
+      const validatedItem = validation.data || item;
+
       // Verificar duplicados
-      const duplicateCheck = this.checkForDuplicates(item);
+      const duplicateCheck = this.checkForDuplicates(validatedItem);
       if (!duplicateCheck.isValid) {
         return {
           success: false,
@@ -216,14 +219,14 @@ class BaseService {
         };
       }
 
-      // Agregar el item
-      this.items.push(item);
+      // Agregar el item validado
+      this.items.push(validatedItem);
 
       await this.saveToStorage();
 
       return {
         success: true,
-        item: item,
+        item: validatedItem,
         message: `${this.entityName} creado exitosamente`,
       };
     } catch (error) {

@@ -316,7 +316,7 @@ class TramiteView extends BaseView {
       const tramitesData = localStorage.getItem('habilitar_tramites');
       const parsed = tramitesData ? JSON.parse(tramitesData) : [];
 
-      // Fix: Add missing IDs to records that don't have them
+      // Fix: Add missing IDs and normalize states
       let needsUpdate = false;
       const fixedData = parsed.map((tramite, index) => {
         if (!tramite.id) {
@@ -324,10 +324,18 @@ class TramiteView extends BaseView {
           tramite.id = `habilitado_${Date.now()}_${index}`;
           needsUpdate = true;
         }
+        // Normalizar estados a "Activo" e "Inactivo"
+        if (tramite.estado === 'activo') {
+          tramite.estado = 'Activo';
+          needsUpdate = true;
+        } else if (tramite.estado === 'inactivo') {
+          tramite.estado = 'Inactivo';
+          needsUpdate = true;
+        }
         return tramite;
       });
 
-      // Update localStorage if we added missing IDs
+      // Update localStorage if we added missing IDs or normalized states
       if (needsUpdate) {
         localStorage.setItem('habilitar_tramites', JSON.stringify(fixedData));
       }
@@ -432,10 +440,14 @@ class TramiteView extends BaseView {
    * Obtiene la clase CSS para el badge del estado
    */
   getEstadoBadgeClass(estado) {
-    switch (estado?.toLowerCase()) {
-      case 'activo':
+    switch (estado) {
+      case 'Activo':
         return 'bg-success';
-      case 'inactivo':
+      case 'Inactivo':
+        return 'bg-danger';
+      case 'activo': // Compatibilidad con datos existentes
+        return 'bg-success';
+      case 'inactivo': // Compatibilidad con datos existentes
         return 'bg-danger';
       case 'pendiente':
         return 'bg-warning';
@@ -596,6 +608,24 @@ class TramiteView extends BaseView {
 
     const modal = new bootstrap.Modal(this.modalOpcionesHabilitado);
     modal.show();
+
+    // Asegurar que el botón se actualice después de que el modal esté visible
+    modal._element.addEventListener(
+      'shown.bs.modal',
+      () => {
+        if (window.tramiteApp && window.tramiteApp.eventManager) {
+          window.tramiteApp.eventManager.emit('habilitado:getById', {
+            habilitadoId,
+            callback: habilitado => {
+              if (habilitado) {
+                this.updateToggleButtonState(habilitado.estado);
+              }
+            },
+          });
+        }
+      },
+      { once: true }
+    );
   }
 
   /**
@@ -608,7 +638,7 @@ class TramiteView extends BaseView {
     const toggleIcon = toggleButton.querySelector('i');
 
     if (toggleButton && toggleText && toggleIcon) {
-      if (estado === 'activo' || estado === 'Activo') {
+      if (estado === 'Activo') {
         toggleText.textContent = 'Inactivar trámite';
         toggleIcon.className = 'fas fa-toggle-off me-2';
         toggleButton.classList.remove('text-warning');

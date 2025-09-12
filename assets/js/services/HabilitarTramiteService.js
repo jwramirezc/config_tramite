@@ -30,7 +30,12 @@ class HabilitarTramiteService extends BaseService {
    */
   validateItem(habilitarTramite) {
     try {
-      const habilitarTramiteObj = new HabilitarTramite(habilitarTramite);
+      // Si ya es una instancia de HabilitarTramite, usarla directamente
+      const habilitarTramiteObj =
+        habilitarTramite instanceof HabilitarTramite
+          ? habilitarTramite
+          : new HabilitarTramite(habilitarTramite);
+
       const validation = habilitarTramiteObj.validate();
       if (!validation.isValid) {
         return { isValid: false, errors: validation.errors };

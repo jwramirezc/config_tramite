@@ -19,7 +19,7 @@ class HabilitarTramite {
     this.fechaInicioCorreccion = data.fechaInicioCorreccion || '';
     this.fechaFinCorreccion = data.fechaFinCorreccion || '';
     this.fechaModificacion = data.fechaModificacion || new Date().toISOString();
-    this.estado = data.estado || 'activo';
+    this.estado = data.estado || 'Activo';
   }
 
   /**
@@ -147,7 +147,7 @@ class HabilitarTramite {
    * @returns {boolean} True si está activo
    */
   isActivo() {
-    return this.estado === 'activo';
+    return this.estado === 'Activo';
   }
 
   /**
@@ -166,6 +166,7 @@ class HabilitarTramite {
       fechaFinalizacion: formData.fechaFinalizacion,
       fechaInicioCorreccion: formData.fechaInicioCorreccion,
       fechaFinCorreccion: formData.fechaFinCorreccion,
+      estado: 'Activo', // Estado por defecto al crear desde formulario
     });
   }
 
