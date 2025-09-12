@@ -18,7 +18,6 @@ class HabilitarTramite {
     this.fechaFinalizacion = data.fechaFinalizacion || '';
     this.fechaInicioCorreccion = data.fechaInicioCorreccion || '';
     this.fechaFinCorreccion = data.fechaFinCorreccion || '';
-    this.fechaCreacion = data.fechaCreacion || new Date().toISOString();
     this.fechaModificacion = data.fechaModificacion || new Date().toISOString();
     this.estado = data.estado || 'activo';
   }
@@ -125,7 +124,6 @@ class HabilitarTramite {
       fechaFinalizacion: this.fechaFinalizacion,
       fechaInicioCorreccion: this.fechaInicioCorreccion,
       fechaFinCorreccion: this.fechaFinCorreccion,
-      fechaCreacion: this.fechaCreacion,
       fechaModificacion: this.fechaModificacion,
       estado: this.estado,
     };

@@ -290,7 +290,6 @@ class TramiteView extends BaseView {
               <th class="text-center">Fecha Finalización</th>
               <th class="text-center">Inicio Corrección</th>
               <th class="text-center">Fin Corrección</th>
-              <th class="text-center">Fecha Creación</th>
               <th class="text-center">Estado</th>
               <th class="text-center">Acciones</th>
             </tr>
@@ -315,7 +314,25 @@ class TramiteView extends BaseView {
   getTramitesHabilitadosFromStorage() {
     try {
       const tramitesData = localStorage.getItem('habilitar_tramites');
-      return tramitesData ? JSON.parse(tramitesData) : [];
+      const parsed = tramitesData ? JSON.parse(tramitesData) : [];
+
+      // Fix: Add missing IDs to records that don't have them
+      let needsUpdate = false;
+      const fixedData = parsed.map((tramite, index) => {
+        if (!tramite.id) {
+          // Generate a unique ID for records that don't have one
+          tramite.id = `habilitado_${Date.now()}_${index}`;
+          needsUpdate = true;
+        }
+        return tramite;
+      });
+
+      // Update localStorage if we added missing IDs
+      if (needsUpdate) {
+        localStorage.setItem('habilitar_tramites', JSON.stringify(fixedData));
+      }
+
+      return fixedData;
     } catch (error) {
       console.error(
         'Error al obtener trámites habilitados del localStorage:',
@@ -362,9 +379,6 @@ class TramiteView extends BaseView {
         </td>
         <td class="text-center">
           <small>${this.formatearFecha(tramite.fechaFinCorreccion)}</small>
-        </td>
-        <td class="text-center">
-          <small>${this.formatearFecha(tramite.fechaCreacion)}</small>
         </td>
         <td class="text-center">
           <span class="badge ${this.getEstadoBadgeClass(tramite.estado)}">
@@ -565,7 +579,15 @@ class TramiteView extends BaseView {
    * @param {string} habilitadoId - ID del trámite habilitado
    */
   showOpcionesHabilitadoModal(habilitadoId) {
+    console.log(
+      '🔍 Debug - showOpcionesHabilitadoModal llamado con ID:',
+      habilitadoId
+    );
     this.currentHabilitadoId = habilitadoId;
+    console.log(
+      '🔍 Debug - currentHabilitadoId establecido a:',
+      this.currentHabilitadoId
+    );
 
     // Emitir evento para obtener el trámite habilitado del controlador
     if (window.tramiteApp && window.tramiteApp.eventManager) {
@@ -574,6 +596,10 @@ class TramiteView extends BaseView {
         callback: habilitado => {
           if (habilitado) {
             // Trámite habilitado obtenido
+            console.log(
+              '🔍 Debug - trámite habilitado obtenido en callback:',
+              habilitado
+            );
           }
         },
       });
@@ -1006,10 +1032,25 @@ class TramiteView extends BaseView {
     const opcionesButtons = this.container.querySelectorAll(
       '.btn-opciones-habilitado'
     );
-    opcionesButtons.forEach(button => {
+    console.log(
+      '🔍 Debug - botones habilitado encontrados:',
+      opcionesButtons.length
+    );
+
+    opcionesButtons.forEach((button, index) => {
+      console.log(`🔍 Debug - botón habilitado ${index}:`, button);
+      console.log(
+        `🔍 Debug - data-habilitado-id del botón ${index}:`,
+        button.getAttribute('data-habilitado-id')
+      );
+
       button.addEventListener('click', e => {
         e.preventDefault();
         const habilitadoId = button.getAttribute('data-habilitado-id');
+        console.log(
+          '🔍 Debug - habilitadoId extraído del botón:',
+          habilitadoId
+        );
 
         // Emitir evento para que el controlador lo maneje
         if (window.tramiteApp && window.tramiteApp.eventManager) {

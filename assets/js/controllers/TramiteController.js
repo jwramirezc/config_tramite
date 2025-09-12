@@ -744,6 +744,10 @@ class TramiteController extends BaseController {
    * @param {string} habilitadoId - ID del trámite habilitado
    */
   showOpcionesHabilitado(habilitadoId) {
+    console.log(
+      '🔍 Debug - showOpcionesHabilitado llamado con ID:',
+      habilitadoId
+    );
     this.tramiteView.showOpcionesHabilitadoModal(habilitadoId);
   }
 
@@ -755,10 +759,43 @@ class TramiteController extends BaseController {
   getHabilitadoById(habilitadoId) {
     try {
       const habilitadosData = localStorage.getItem('habilitar_tramites');
-      if (!habilitadosData) return null;
+      console.log('🔍 Debug - habilitadosData:', habilitadosData);
+      console.log('🔍 Debug - habilitadoId buscado:', habilitadoId);
+
+      if (!habilitadosData) {
+        console.log(
+          '❌ No hay datos en localStorage con key "habilitar_tramites"'
+        );
+        return null;
+      }
 
       const habilitados = JSON.parse(habilitadosData);
-      return habilitados.find(hab => hab.id === habilitadoId) || null;
+      console.log('🔍 Debug - habilitados parseados:', habilitados);
+      console.log(
+        '🔍 Debug - IDs disponibles:',
+        habilitados.map(h => h.id)
+      );
+
+      // Fix: Add missing IDs to records that don't have them
+      let needsUpdate = false;
+      const fixedHabilitados = habilitados.map((hab, index) => {
+        if (!hab.id) {
+          hab.id = `habilitado_${Date.now()}_${index}`;
+          needsUpdate = true;
+        }
+        return hab;
+      });
+
+      // Update localStorage if we added missing IDs
+      if (needsUpdate) {
+        localStorage.setItem(
+          'habilitar_tramites',
+          JSON.stringify(fixedHabilitados)
+        );
+      }
+
+      const found = fixedHabilitados.find(hab => hab.id === habilitadoId);
+      return found || null;
     } catch (error) {
       console.error('Error al obtener trámite habilitado:', error);
       return null;
@@ -769,6 +806,11 @@ class TramiteController extends BaseController {
    * Edita un trámite habilitado
    */
   editarHabilitado() {
+    console.log(
+      '🔍 Debug - currentHabilitadoId:',
+      this.tramiteView.currentHabilitadoId
+    );
+
     if (!this.tramiteView.currentHabilitadoId) {
       console.error('❌ No hay trámite habilitado seleccionado para editar');
       return;
@@ -777,6 +819,8 @@ class TramiteController extends BaseController {
     const habilitado = this.getHabilitadoById(
       this.tramiteView.currentHabilitadoId
     );
+    console.log('🔍 Debug - habilitado obtenido:', habilitado);
+
     if (!habilitado) {
       console.error('❌ Trámite habilitado no encontrado');
       return;

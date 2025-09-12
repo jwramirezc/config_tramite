@@ -302,7 +302,26 @@ class HabilitarTramiteController {
       }
 
       const habilitados = JSON.parse(habilitadosData);
-      const habilitadoIndex = habilitados.findIndex(
+
+      // Fix: Add missing IDs to records that don't have them
+      let needsUpdate = false;
+      const fixedHabilitados = habilitados.map((hab, index) => {
+        if (!hab.id) {
+          hab.id = `habilitado_${Date.now()}_${index}`;
+          needsUpdate = true;
+        }
+        return hab;
+      });
+
+      // Update localStorage if we added missing IDs
+      if (needsUpdate) {
+        localStorage.setItem(
+          'habilitar_tramites',
+          JSON.stringify(fixedHabilitados)
+        );
+      }
+
+      const habilitadoIndex = fixedHabilitados.findIndex(
         hab => hab.id === habilitadoId
       );
 
@@ -315,15 +334,18 @@ class HabilitarTramiteController {
 
       // Actualizar el trámite habilitado
       const habilitadoActualizado = {
-        ...habilitados[habilitadoIndex],
+        ...fixedHabilitados[habilitadoIndex],
         ...formData,
         fechaModificacion: new Date().toISOString(),
       };
 
-      habilitados[habilitadoIndex] = habilitadoActualizado;
+      fixedHabilitados[habilitadoIndex] = habilitadoActualizado;
 
       // Guardar en localStorage
-      localStorage.setItem('habilitar_tramites', JSON.stringify(habilitados));
+      localStorage.setItem(
+        'habilitar_tramites',
+        JSON.stringify(fixedHabilitados)
+      );
 
       return {
         success: true,
